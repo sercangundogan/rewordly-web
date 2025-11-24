@@ -241,6 +241,83 @@ const Home: NextPage = () => {
           line-height: 1.7;
         }
         
+        .testimonials-section {
+          background: #ffffff;
+          padding: 80px 20px;
+        }
+        
+        .testimonials {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 30px;
+          margin-top: 60px;
+        }
+        
+        .testimonial-card {
+          background: #f8f9fa;
+          padding: 30px;
+          border-radius: 15px;
+          box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+          transition: all 0.3s ease;
+        }
+        
+        .testimonial-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+        
+        .testimonial-header {
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          margin-bottom: 20px;
+        }
+        
+        .testimonial-avatar {
+          width: 60px;
+          height: 60px;
+          border-radius: 50%;
+          object-fit: cover;
+          background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: white;
+          font-size: 1.5rem;
+          font-weight: 600;
+          flex-shrink: 0;
+        }
+        
+        .testimonial-avatar img {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          object-fit: cover;
+        }
+        
+        .testimonial-info {
+          flex: 1;
+        }
+        
+        .testimonial-name {
+          font-size: 1.1rem;
+          font-weight: 600;
+          color: #1a1a1a;
+          margin-bottom: 5px;
+        }
+        
+        .testimonial-rating {
+          display: flex;
+          gap: 3px;
+          color: #ffc107;
+        }
+        
+        .testimonial-text {
+          color: #666;
+          line-height: 1.7;
+          font-size: 0.95rem;
+        }
+        
         .highlight-section {
           background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
           color: white;
@@ -307,6 +384,11 @@ const Home: NextPage = () => {
           .features {
             grid-template-columns: 1fr;
             gap: 30px;
+          }
+          
+          .testimonials {
+            grid-template-columns: 1fr;
+            gap: 25px;
           }
         }
       `}</style>
@@ -418,6 +500,87 @@ const Home: NextPage = () => {
                   No hidden fees, no credit card required. 
                   Unlimited usage, completely free.
                 </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Testimonials Section */}
+        <section className="testimonials-section">
+          <div className="container">
+            <h2 className="section-title">What Our Users Say</h2>
+            <div className="testimonials">
+              <div className="testimonial-card">
+                <div className="testimonial-header">
+                  <div className="testimonial-avatar">
+                    <img 
+                      src="/customers/customer-himanshu-raikwar.png" 
+                      alt="Himanshu Raikwar"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.textContent = 'HR';
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="testimonial-info">
+                    <div className="testimonial-name">Himanshu Raikwar</div>
+                    <div className="testimonial-rating">
+                      {'★'.repeat(5)}
+                    </div>
+                  </div>
+                </div>
+                <div className="testimonial-text">
+                  "If I recall correctly, I met a helpful developer on the Reddit community who shared this extension with me. Every day, he saves me more than 1 hour by helping me rewrite sentences. Fun fact: This review was rewritten by Rewordly."
+                </div>
+              </div>
+
+              <div className="testimonial-card">
+                <div className="testimonial-header">
+                  <div className="testimonial-avatar">
+                    <img 
+                      src="/customers/customer-aysu-perin.jpg" 
+                      alt="aysu Perin"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        target.style.display = 'none';
+                        const parent = target.parentElement;
+                        if (parent) {
+                          parent.textContent = 'AP';
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="testimonial-info">
+                    <div className="testimonial-name">aysu Perin</div>
+                    <div className="testimonial-rating">
+                      {'★'.repeat(5)}
+                    </div>
+                  </div>
+                </div>
+                <div className="testimonial-text">
+                  "Extremely simple yet incredibly useful plugin. The interface is clean and very user-friendly."
+                </div>
+              </div>
+
+              <div className="testimonial-card">
+                <div className="testimonial-header">
+                  <div className="testimonial-avatar">
+                    KD
+                  </div>
+                  <div className="testimonial-info">
+                    <div className="testimonial-name">Kristian Diana</div>
+                    <div className="testimonial-rating">
+                      {'★'.repeat(5)}
+                    </div>
+                  </div>
+                </div>
+                <div className="testimonial-text">
+                  "Extremely convenient for improving writing on the fly. Works quickly and effectively!"
+                </div>
               </div>
             </div>
           </div>
