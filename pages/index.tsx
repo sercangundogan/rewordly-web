@@ -40,7 +40,17 @@ const Home: NextPage = () => {
         <meta property="twitter:title" content="Rewordly - Free Text Rewriting Tool" />
         <meta property="twitter:description" content="Instantly rewrite selected text. Improve grammar, clarity, and fluency. Completely free, no sign-up required." />
         
-        <link rel="icon" href="/favicon.ico" />
+        {/* Favicons */}
+        <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+        <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/site.webmanifest" />
+        
+        {/* Theme Colors */}
+        <meta name="theme-color" content="#667eea" />
+        <meta name="msapplication-TileColor" content="#764ba2" />
+        
         <link rel="canonical" href="https://rewordly.com/" />
       </Head>
 
