@@ -1,6 +1,7 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
 import { useEffect, useRef } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 
 const Home: NextPage = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -633,6 +634,7 @@ const Home: NextPage = () => {
           </div>
         </footer>
       </main>
+      <Analytics />
     </>
   );
 };
