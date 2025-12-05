@@ -131,6 +131,10 @@ export async function checkGrammar(
     return {
       errors: errors, // Return errors in original order (ascending by position)
       corrected: corrected,
+      detectedLanguage: response.data.language && response.data.language.detectedLanguage ? {
+        code: response.data.language.detectedLanguage.code || '',
+        name: response.data.language.detectedLanguage.name || ""  ,
+      } : undefined,
     };
   } catch (error) {
     if (axios.isAxiosError(error)) {

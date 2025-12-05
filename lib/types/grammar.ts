@@ -13,6 +13,10 @@ export interface GrammarError {
 export interface GrammarCheckResponse {
   errors: GrammarError[]; // Array of grammar errors found
   corrected: string;     // The corrected version of the text
+  detectedLanguage?: {   // Detected language information
+    code: string;        // Language code (e.g., 'en-US', 'tr-TR')
+    name: string;        // Language name (e.g., 'English (US)', 'Turkish')
+  };
 }
 
 export interface GrammarRequest {
@@ -58,6 +62,12 @@ export interface LanguageToolResponse {
   language: {
     name: string;
     code: string;
+    detectedLanguage: {
+      code?: string;
+      name?: string;
+      confidence?: number;
+      source?: string;
+    } | undefined;
   };
 }
 
