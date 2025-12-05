@@ -21,6 +21,7 @@ export interface GrammarCheckResponse {
 
 export interface GrammarRequest {
   text: string;
+  mode?: 'default' | 'ai'; // 'default' uses LanguageTool, 'ai' uses OpenAI rewrite
 }
 
 export interface ApiError {

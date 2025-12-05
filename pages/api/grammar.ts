@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { checkGrammar, checkGrammarWithOpenAI } from '../../lib/services/grammarService';
+import { rewriteText } from '../../lib/openai';
 import { GrammarRequest, GrammarCheckResponse, ApiError } from '../../lib/types/grammar';
 
 // CORS headers for Chrome Extension
@@ -40,7 +41,7 @@ export default async function handler(
 
   try {
     // Parse and validate request body
-    const { text }: GrammarRequest = req.body;
+    const { text, mode = 'default' }: GrammarRequest = req.body;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       res.status(400).json({
@@ -59,14 +60,33 @@ export default async function handler(
       return;
     }
 
-    // Try LanguageTool first, fallback to OpenAI if needed
+    // Validate mode
+    if (mode && mode !== 'default' && mode !== 'ai') {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Mode must be either "default" or "ai"'
+      });
+      return;
+    }
+
     let result: GrammarCheckResponse;
-    try {
-      result = await checkGrammar(text);
-    } catch (languageToolError) {
-      console.warn('LanguageTool failed, falling back to OpenAI:', languageToolError);
-      // Fallback to OpenAI if LanguageTool fails
-      result = await checkGrammarWithOpenAI(text);
+
+    // If mode is 'ai', use OpenAI rewrite directly
+    if (mode === 'ai') {
+      const rewriteResult = await checkGrammarWithOpenAI(text);
+      result = {
+        errors: [], // No errors array needed for AI rewrite
+        corrected: rewriteResult.corrected,
+      };
+    } else {
+      // Try LanguageTool first, fallback to OpenAI if needed
+      try {
+        result = await checkGrammar(text);
+      } catch (languageToolError) {
+        console.warn('LanguageTool failed, falling back to OpenAI:', languageToolError);
+        // Fallback to OpenAI if LanguageTool fails
+        result = await checkGrammarWithOpenAI(text);
+      }
     }
     
     res.status(200).json(result);
