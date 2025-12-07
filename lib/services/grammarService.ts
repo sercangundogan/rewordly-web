@@ -66,6 +66,9 @@ export async function checkGrammar(
     const params = new URLSearchParams();
     params.append('text', text);
     params.append('language', language);
+    // Use 'picky' level to catch more errors including duplicate verbs
+    // This helps detect errors like "Is everything is going well?"
+    params.append('level', 'picky');
     
     const response = await axios.post<LanguageToolResponse>(
       LANGUAGETOOL_API_URL,

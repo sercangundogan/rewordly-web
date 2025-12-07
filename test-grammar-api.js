@@ -24,6 +24,10 @@ const testGrammarAPI = async () => {
       name: 'Test 5: Proper noun (should not be flagged)',
       text: 'I go to the store yesterday and I bought some apples. He did not like them. She is happy. They are there too. My name is Sercan.',
     },
+    {
+      name: 'Test 6: Duplicate verb (like Grammarly detects)',
+      text: 'Is everything is going well or what?',
+    },
   ];
 
   for (const test of tests) {
