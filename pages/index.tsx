@@ -570,7 +570,7 @@ const Home: NextPage = () => {
         /* Hero Section */
         .hero {
           min-height: 100vh;
-          padding: 140px 40px 0px;
+          padding: 140px 40px 60px;
           background: linear-gradient(
             180deg,
             #faf5ff 0%,
@@ -1725,7 +1725,7 @@ const Home: NextPage = () => {
           }
 
           .hero {
-            padding: 120px 20px 0px;
+            padding: 120px 20px 60px;
           }
 
           .hero-stats {
