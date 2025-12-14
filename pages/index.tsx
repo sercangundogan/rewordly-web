@@ -1,45 +1,35 @@
 import { NextPage } from 'next';
 import Head from 'next/head';
-import { useEffect, useRef } from 'react';
 import { Analytics } from '@vercel/analytics/react';
 
 const Home: NextPage = () => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.play().catch(() => {
-        // Autoplay was prevented, user interaction required
-      });
-    }
-  }, []);
 
   return (
     <>
       <Head>
-        <title>Rewordly - Free Text Rewriting and Grammar Correction Tool</title>
+        <title>Rewordly - AI Text Rewriting & Grammar Check | Free Chrome Extension</title>
         <meta 
           name="description" 
-          content="Instantly rewrite selected text with Rewordly. Improve grammar, clarity, and fluency. Completely free, no sign-up required. Start using as a Chrome Extension right away." 
+          content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. Select any text, click, and get an improved version instantly. 100% free, no sign-up required." 
         />
         <meta 
           name="keywords" 
-          content="text rewriting, grammar correction, paraphrase, text improvement, free writing tool, chrome extension, rewordly" 
+          content="text rewriting, grammar check, spelling correction, AI writing tool, chrome extension, grammar checker, rewordly, free grammar tool" 
         />
         <meta name="author" content="Rewordly" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
-        <meta property="og:url" content="https://rewordly.com/" />
-        <meta property="og:title" content="Rewordly - Free Text Rewriting Tool" />
-        <meta property="og:description" content="Instantly rewrite selected text. Improve grammar, clarity, and fluency. Completely free, no sign-up required." />
+        <meta property="og:url" content="https://rewordly-web.vercel.app/" />
+        <meta property="og:title" content="Rewordly - AI Text Rewriting & Grammar Check" />
+        <meta property="og:description" content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. 100% free, no sign-up required." />
         
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
-        <meta property="twitter:url" content="https://rewordly.com/" />
-        <meta property="twitter:title" content="Rewordly - Free Text Rewriting Tool" />
-        <meta property="twitter:description" content="Instantly rewrite selected text. Improve grammar, clarity, and fluency. Completely free, no sign-up required." />
+        <meta property="twitter:url" content="https://rewordly-web.vercel.app/" />
+        <meta property="twitter:title" content="Rewordly - AI Text Rewriting & Grammar Check" />
+        <meta property="twitter:description" content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. 100% free, no sign-up required." />
         
         {/* Favicons */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />
@@ -52,7 +42,7 @@ const Home: NextPage = () => {
         <meta name="theme-color" content="#667eea" />
         <meta name="msapplication-TileColor" content="#764ba2" />
         
-        <link rel="canonical" href="https://rewordly.com/" />
+        <link rel="canonical" href="https://rewordly-web.vercel.app/" />
       </Head>
 
       <style jsx global>{`
@@ -186,10 +176,15 @@ const Home: NextPage = () => {
           background: #000;
         }
         
-        .video-container video {
+        .video-container video,
+        .video-container img {
           width: 100%;
           height: auto;
           display: block;
+        }
+        
+        .demo-gif {
+          border-radius: 12px;
         }
         
         .section {
@@ -400,8 +395,8 @@ const Home: NextPage = () => {
           <div className="hero-content">
             <h1>Rewordly</h1>
             <p>
-              Instantly rewrite selected text with better grammar, clarity, and fluency. 
-              Completely free, no sign-up required.
+              AI-powered text rewriting with real-time grammar and spelling check. 
+              Select any text, click, and get an improved version instantly.
             </p>
             <a 
               href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp" 
@@ -413,38 +408,35 @@ const Home: NextPage = () => {
             </a>
             <div className="badges">
               <div className="badge">
-                <span className="badge-icon">✓</span>
-                <span>Completely Free</span>
+                <span className="badge-icon">🤖</span>
+                <span>AI Rewriting</span>
               </div>
               <div className="badge">
-                <span className="badge-icon">✓</span>
-                <span>No Sign-Up Required</span>
+                <span className="badge-icon">✅</span>
+                <span>Grammar Check</span>
               </div>
               <div className="badge">
-                <span className="badge-icon">✓</span>
-                <span>Ready to Use Instantly</span>
+                <span className="badge-icon">📝</span>
+                <span>Spelling Fix</span>
+              </div>
+              <div className="badge">
+                <span className="badge-icon">💯</span>
+                <span>100% Free</span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Video Section */}
+        {/* Demo Section */}
         <section className="video-section">
           <div className="container">
-            <h2 className="section-title">How Does Rewordly Work?</h2>
+            <h2 className="section-title">See Rewordly in Action</h2>
             <div className="video-container">
-              <video
-                ref={videoRef}
-                autoPlay
-                muted
-                loop
-                playsInline
-                controls
-                preload="auto"
-              >
-                <source src="/rewordly.mp4" type="video/mp4" />
-                Your browser does not support the video tag.
-              </video>
+              <img 
+                src="/Reddit with AI Review and Grammar check.gif" 
+                alt="Rewordly Demo - AI Review and Grammar Check on Reddit"
+                className="demo-gif"
+              />
             </div>
           </div>
         </section>
@@ -455,51 +447,51 @@ const Home: NextPage = () => {
             <h2 className="section-title">Why Rewordly?</h2>
             <div className="features">
               <div className="feature-card">
-                <div className="feature-icon">⚡</div>
-                <h3>Instant Results</h3>
+                <div className="feature-icon">🤖</div>
+                <h3>AI-Powered Rewriting</h3>
                 <p>
-                  Select your text, click, and see the improved version instantly. 
-                  No waiting, no registration, just fast and easy usage.
+                  Select any text and instantly get an AI-improved version. 
+                  Enhance clarity, tone, and readability with one click.
                 </p>
               </div>
               <div className="feature-card">
-                <div className="feature-icon">✨</div>
-                <h3>Grammar Correction</h3>
+                <div className="feature-icon">✅</div>
+                <h3>Real-time Grammar Check</h3>
                 <p>
-                  Automatically fixes grammar errors in your text and 
-                  provides more professional writing.
+                  Advanced grammar checking with detailed error highlighting. 
+                  See exactly what's wrong and how to fix it.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">📝</div>
-                <h3>Clarity and Fluency</h3>
+                <h3>Spelling Correction</h3>
                 <p>
-                  Makes your text clearer, more understandable, and fluent. 
-                  Enhance the quality of your writing.
-                </p>
-              </div>
-              <div className="feature-card">
-                <div className="feature-icon">🔒</div>
-                <h3>Privacy Focused</h3>
-                <p>
-                  Your data is safe. No sign-up required, 
-                  your personal information is not collected.
+                  Automatic spelling error detection with smart suggestions. 
+                  Fix typos instantly with a single click.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">🌐</div>
-                <h3>Use Anywhere</h3>
+                <h3>Works Everywhere</h3>
                 <p>
-                  Works on any webpage. 
-                  Emails, documents, social media - everywhere.
+                  Use on Reddit, Twitter, Gmail, LinkedIn, or any website. 
+                  Works seamlessly wherever you write online.
+                </p>
+              </div>
+              <div className="feature-card">
+                <div className="feature-icon">🔒</div>
+                <h3>Privacy First</h3>
+                <p>
+                  No account required, no data stored. 
+                  Your text is processed securely and never saved.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon">💯</div>
-                <h3>Completely Free</h3>
+                <h3>100% Free Forever</h3>
                 <p>
-                  No hidden fees, no credit card required. 
-                  Unlimited usage, completely free.
+                  No hidden fees, no premium plans, no credit card. 
+                  Full features available to everyone, always.
                 </p>
               </div>
             </div>
@@ -590,11 +582,12 @@ const Home: NextPage = () => {
         {/* Highlight Section */}
         <section className="section highlight-section">
           <div className="container">
-            <h2 className="section-title">Get Started Now</h2>
+            <h2 className="section-title">Start Writing Better Today</h2>
             <div className="highlight-content">
               <p>
-                Install Rewordly for free from the Chrome Web Store and start using it right away. 
-                No sign-up, registration, or payment required. Just install and use!
+                Install Rewordly and get instant access to AI-powered text rewriting, 
+                grammar checking, and spelling correction. No account needed, no payment required. 
+                Just install and start improving your writing everywhere online!
               </p>
               <a 
                 href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp" 
@@ -603,7 +596,7 @@ const Home: NextPage = () => {
                 className="cta-button"
                 style={{ marginTop: '2rem' }}
               >
-                Install Now
+                Add to Chrome - It's Free
               </a>
             </div>
           </div>
