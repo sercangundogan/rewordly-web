@@ -33,7 +33,7 @@ A Next.js backend API for the Rewordly Chrome Extension that uses OpenAI GPT to 
    npm run dev
    ```
    
-   The API will be available at `http://localhost:3000`
+   The API will be available at `https://rewordly-web.vercel.app/api/grammar`
 
 ## API Documentation
 
