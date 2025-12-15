@@ -1341,10 +1341,12 @@ const Home: NextPage = () => {
           border: 1px solid rgba(139, 92, 246, 0.1);
         }
 
-        .demo-wrapper img {
+        .demo-wrapper img,
+        .demo-wrapper video {
           width: 100%;
           height: auto;
           display: block;
+          object-fit: contain;
         }
 
         /* Benefits Section */
@@ -1368,13 +1370,18 @@ const Home: NextPage = () => {
           position: relative;
           border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 25px 80px rgba(139, 92, 246, 0.15);
+          display: flex;
+          justify-content: center;
+          align-items: center;
         }
 
-        .benefits-image-wrapper img {
+        .benefits-image-wrapper img,
+        .benefits-image-wrapper video {
           width: 100%;
           height: auto;
           display: block;
+          object-fit: contain;
+          max-width: 560px;
         }
 
         .benefits-content h2 {
@@ -1683,6 +1690,10 @@ const Home: NextPage = () => {
             gap: 24px;
           }
 
+          .benefits-image {
+            display: none;
+          }
+
           .footer-container {
             flex-direction: column;
             text-align: center;
@@ -1970,9 +1981,12 @@ const Home: NextPage = () => {
               </p>
             </div>
             <div className="demo-wrapper">
-              <img
-                src="/Reddit with AI Review and Grammar check.gif"
-                alt="Rewordly Demo - AI Review and Grammar Check"
+              <video
+                src="/Reddit with AI Review and Grammar check with animation.mp4"
+                autoPlay
+                loop
+                muted
+                playsInline
               />
             </div>
           </div>
@@ -1985,8 +1999,8 @@ const Home: NextPage = () => {
               <div className="benefits-image">
                 <div className="benefits-image-wrapper">
                   <img
-                    src="/Reddit with AI Review and Grammar check.gif"
-                    alt="Rewordly Benefits"
+                    src="/why-choose-image.png"
+                    alt="Why choose Rewordly - AI text enhancement"
                   />
                 </div>
               </div>
