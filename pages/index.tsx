@@ -1826,7 +1826,7 @@ const Home: NextPage = () => {
                   <div className="avatar">+5</div>
                 </div>
                 <div className="floating-users-text">
-                  <span className="floating-users-count">50+ Users</span>
+                  <span className="floating-users-count">30+ Users</span>
                   <span className="floating-users-label">Happy Writers</span>
                 </div>
               </div>
