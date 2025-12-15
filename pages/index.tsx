@@ -1,7 +1,41 @@
 import { NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import Image from "next/image";
+import { useState, useEffect, useRef } from "react";
 import { Analytics } from "@vercel/analytics/react";
+
+// Lazy Video Component for better PageSpeed
+const LazyVideo = ({ src, ...props }: { src: string; [key: string]: unknown }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '100px', threshold: 0.1 }
+    );
+
+    if (videoRef.current) {
+      observer.observe(videoRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <video
+      ref={videoRef}
+      src={isVisible ? src : undefined}
+      preload={isVisible ? "auto" : "none"}
+      {...props}
+    />
+  );
+};
 
 // SVG Icons
 const SparklesIcon = ({ size = 24 }: { size?: number }) => (
@@ -475,10 +509,6 @@ const Home: NextPage = () => {
         <meta name="msapplication-TileColor" content="#EC4899" />
 
         <link rel="canonical" href="https://rewordly-web.vercel.app/" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
-          rel="stylesheet"
-        />
       </Head>
 
       <style jsx global>{`
@@ -859,6 +889,20 @@ const Home: NextPage = () => {
           display: block;
           position: relative;
           z-index: 1;
+        }
+
+        /* CLS Prevention - Reserve space for images */
+        .hero-image-container {
+          aspect-ratio: 700 / 500;
+          max-width: 700px;
+        }
+
+        .benefits-image-wrapper {
+          aspect-ratio: 560 / 400;
+        }
+
+        .demo-wrapper video {
+          aspect-ratio: 16 / 9;
         }
 
         /* Decorative shapes */
@@ -1868,9 +1912,14 @@ const Home: NextPage = () => {
               </div>
               
               <div className="hero-image-container">
-                <img
+                <Image
                   src="/hero-image.png"
                   alt="Rewordly - AI-powered text enhancement"
+                  width={700}
+                  height={500}
+                  priority
+                  quality={85}
+                  style={{ width: '100%', height: 'auto' }}
                 />
               </div>
             </div>
@@ -1981,12 +2030,13 @@ const Home: NextPage = () => {
               </p>
             </div>
             <div className="demo-wrapper">
-              <video
+              <LazyVideo
                 src="/Reddit with AI Review and Grammar check with animation.mp4"
                 autoPlay
                 loop
                 muted
                 playsInline
+                poster="/hero-image.png"
               />
             </div>
           </div>
@@ -1998,9 +2048,14 @@ const Home: NextPage = () => {
             <div className="benefits-grid">
               <div className="benefits-image">
                 <div className="benefits-image-wrapper">
-                  <img
+                  <Image
                     src="/why-choose-image.png"
                     alt="Why choose Rewordly - AI text enhancement"
+                    width={560}
+                    height={400}
+                    loading="lazy"
+                    quality={85}
+                    style={{ width: '100%', height: 'auto', maxWidth: '560px' }}
                   />
                 </div>
               </div>
