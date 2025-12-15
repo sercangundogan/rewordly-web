@@ -658,28 +658,6 @@ const Home: NextPage = () => {
           filter: blur(12px);
         }
 
-        .content-sparkle {
-          position: absolute;
-          width: 6px;
-          height: 6px;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          border-radius: 50%;
-          z-index: 1;
-          animation: sparkle 2.5s ease-in-out infinite;
-        }
-
-        .content-sparkle-1 {
-          top: 5%;
-          left: 0;
-          animation-delay: 0.3s;
-        }
-
-        .content-sparkle-2 {
-          top: 50%;
-          right: 5%;
-          animation-delay: 1.2s;
-        }
-
         .hero-stats {
           display: flex;
           gap: 40px;
@@ -917,47 +895,6 @@ const Home: NextPage = () => {
           filter: blur(15px);
         }
 
-        /* Sparkle dots */
-        .hero-sparkle {
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          background: white;
-          border-radius: 50%;
-          box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
-          z-index: 2;
-          animation: sparkle 2s ease-in-out infinite;
-        }
-
-        .hero-sparkle-1 {
-          top: 15%;
-          right: 15%;
-          animation-delay: 0s;
-        }
-
-        .hero-sparkle-2 {
-          top: 40%;
-          right: 5%;
-          animation-delay: 0.5s;
-        }
-
-        .hero-sparkle-3 {
-          bottom: 30%;
-          left: 10%;
-          animation-delay: 1s;
-        }
-
-        @keyframes sparkle {
-          0%, 100% {
-            opacity: 0.3;
-            transform: scale(1);
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1.2);
-          }
-        }
-
         /* Floating Cards */
         .floating-card {
           position: absolute;
@@ -980,7 +917,7 @@ const Home: NextPage = () => {
         /* Stats Card - Top Right */
         .floating-stats-card {
           top: 5%;
-          right: -10%;
+          right: 0%;
           padding: 16px 20px;
           display: flex;
           align-items: center;
@@ -1021,7 +958,7 @@ const Home: NextPage = () => {
         /* Testimonial Card - Bottom Left */
         .floating-testimonial-card {
           bottom: 15%;
-          left: -15%;
+          left: 0%;
           padding: 16px;
           max-width: 220px;
           animation-delay: 1s;
@@ -1807,8 +1744,6 @@ const Home: NextPage = () => {
               {/* Content decorative shapes */}
               <div className="content-decoration content-decoration-1"></div>
               <div className="content-decoration content-decoration-2"></div>
-              <div className="content-sparkle content-sparkle-1"></div>
-              <div className="content-sparkle content-sparkle-2"></div>
               
               <div className="hero-badge">
                 <span className="hero-badge-dot"></span>
@@ -1856,7 +1791,7 @@ const Home: NextPage = () => {
                   <div className="stat-label">Chrome Store Rating</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-value">50+</div>
+                  <div className="stat-value">30+</div>
                   <div className="stat-label">Happy Users</div>
                 </div>
               </div>
@@ -1866,11 +1801,6 @@ const Home: NextPage = () => {
               <div className="hero-decoration hero-decoration-1"></div>
               <div className="hero-decoration hero-decoration-2"></div>
               <div className="hero-decoration hero-decoration-3"></div>
-              
-              {/* Sparkle dots */}
-              <div className="hero-sparkle hero-sparkle-1"></div>
-              <div className="hero-sparkle hero-sparkle-2"></div>
-              <div className="hero-sparkle hero-sparkle-3"></div>
 
               {/* Floating Stats Card - Top Right */}
               <div className="floating-card floating-stats-card">
@@ -1946,8 +1876,8 @@ const Home: NextPage = () => {
               <span className="trusted-logo">Reddit</span>
               <span className="trusted-logo">Gmail</span>
               <span className="trusted-logo">Twitter</span>
-              <span className="trusted-logo">LinkedIn</span>
-              <span className="trusted-logo">Notion</span>
+              <span className="trusted-logo">Medium</span>
+              {/* <span className="trusted-logo">Notion</span> */}
             </div>
           </div>
         </section>
