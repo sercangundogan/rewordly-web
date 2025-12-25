@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Output standalone for Docker
+  output: 'standalone',
+  
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
