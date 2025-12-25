@@ -1,5 +1,8 @@
 FROM node:18-alpine
 
+# Install wget for healthcheck
+RUN apk add --no-cache wget
+
 WORKDIR /app
 
 # Copy package files
@@ -20,6 +23,10 @@ RUN npm run build
 RUN npm prune --production
 
 EXPOSE 3000
+
+# Set environment variables for Next.js
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 # Start Next.js server
 CMD ["npm", "start"]
