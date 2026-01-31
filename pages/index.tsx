@@ -2,7 +2,6 @@ import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { useState } from "react";
-import { Analytics } from "@vercel/analytics/react";
 
 // SVG Icons
 const SparklesIcon = ({ size = 24 }: { size?: number }) => (
@@ -981,7 +980,8 @@ const Home: NextPage = () => {
           overflow: hidden;
         }
 
-        .floating-testimonial-avatar img {
+        .floating-testimonial-avatar img,
+        .floating-testimonial-avatar span img {
           width: 100%;
           height: 100%;
           object-fit: cover;
@@ -1045,7 +1045,8 @@ const Home: NextPage = () => {
           margin-left: 0;
         }
 
-        .floating-users-avatars .avatar img {
+        .floating-users-avatars .avatar img,
+        .floating-users-avatars .avatar span img {
           width: 100%;
           height: 100%;
           object-fit: cover;
@@ -1522,7 +1523,8 @@ const Home: NextPage = () => {
           overflow: hidden;
         }
 
-        .testimonial-avatar img {
+        .testimonial-avatar img,
+        .testimonial-avatar span img {
           width: 100%;
           height: 100%;
           object-fit: cover;
@@ -1888,10 +1890,10 @@ const Home: NextPage = () => {
               <div className="floating-card floating-users-card">
                 <div className="floating-users-avatars">
                   <div className="avatar">
-                    <img src="/customers/customer-himanshu-raikwar.png" alt="User" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <Image src="/customers/customer-himanshu-raikwar.png" alt="User" width={32} height={32} loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                   <div className="avatar">
-                    <img src="/customers/customer-aysu-perin.jpg" alt="User" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    <Image src="/customers/customer-aysu-perin.jpg" alt="User" width={32} height={32} loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                   </div>
                   <div className="avatar">KD</div>
                   <div className="avatar">+5</div>
@@ -1906,7 +1908,7 @@ const Home: NextPage = () => {
               <div className="floating-card floating-testimonial-card">
                 <div className="floating-testimonial-header">
                   <div className="floating-testimonial-avatar">
-                    <img src="/customers/customer-himanshu-raikwar.png" alt="Himanshu" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.textContent = 'HR'; }} />
+                    <Image src="/customers/customer-himanshu-raikwar.png" alt="Himanshu" width={36} height={36} loading="lazy" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.textContent = 'HR'; }} />
                   </div>
                   <div className="floating-testimonial-info">
                     <span className="floating-testimonial-name">Himanshu R.</span>
@@ -1934,7 +1936,8 @@ const Home: NextPage = () => {
                   width={700}
                   height={500}
                   priority
-                  quality={85}
+                  quality={80}
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
                   style={{ width: '100%', height: 'auto' }}
                 />
               </div>
@@ -2116,7 +2119,8 @@ const Home: NextPage = () => {
                     width={560}
                     height={400}
                     loading="lazy"
-                    quality={85}
+                    quality={80}
+                    sizes="(max-width: 768px) 100vw, 560px"
                     style={{ width: '100%', height: 'auto', maxWidth: '560px' }}
                   />
                 </div>
@@ -2192,9 +2196,12 @@ const Home: NextPage = () => {
               <div className="testimonial-card">
                 <div className="testimonial-header">
                   <div className="testimonial-avatar">
-                    <img
+                    <Image
                       src="/customers/customer-himanshu-raikwar.png"
                       alt="Himanshu Raikwar"
+                      width={56}
+                      height={56}
+                      loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = "none";
@@ -2216,9 +2223,12 @@ const Home: NextPage = () => {
               <div className="testimonial-card">
                 <div className="testimonial-header">
                   <div className="testimonial-avatar">
-                    <img
+                    <Image
                       src="/customers/customer-aysu-perin.jpg"
                       alt="Aysu Perin"
+                      width={56}
+                      height={56}
+                      loading="lazy"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
                         target.style.display = "none";
@@ -2300,7 +2310,6 @@ const Home: NextPage = () => {
           </div>
         </footer>
       </main>
-      <Analytics />
     </>
   );
 };

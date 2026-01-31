@@ -2,7 +2,12 @@
 const nextConfig = {
   // Output standalone for Docker
   output: 'standalone',
-  
+
+  // Tree-shake and optimize package imports (smaller bundles)
+  experimental: {
+    optimizePackageImports: ['@vercel/analytics'],
+  },
+
   // Image optimization
   images: {
     formats: ['image/avif', 'image/webp'],
