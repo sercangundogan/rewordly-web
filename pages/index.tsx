@@ -1,41 +1,8 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import { Analytics } from "@vercel/analytics/react";
-
-// Lazy Video Component for better PageSpeed
-const LazyVideo = ({ src, ...props }: { src: string; [key: string]: unknown }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '100px', threshold: 0.1 }
-    );
-
-    if (videoRef.current) {
-      observer.observe(videoRef.current);
-    }
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <video
-      ref={videoRef}
-      src={isVisible ? src : undefined}
-      preload={isVisible ? "auto" : "none"}
-      {...props}
-    />
-  );
-};
 
 // SVG Icons
 const SparklesIcon = ({ size = 24 }: { size?: number }) => (
@@ -888,10 +855,6 @@ const Home: NextPage = () => {
           max-width: 700px;
         }
 
-        .demo-wrapper video {
-          aspect-ratio: 16 / 9;
-        }
-
         /* Decorative shapes */
         .hero-decoration {
           position: absolute;
@@ -1371,21 +1334,60 @@ const Home: NextPage = () => {
           margin: 0 auto;
         }
 
-        .demo-wrapper {
-          position: relative;
-          border-radius: 24px;
-          overflow: hidden;
-          box-shadow: 0 30px 100px rgba(0, 0, 0, 0.1);
-          border: 1px solid #e5e5e5;
+        .how-steps {
+          max-width: 720px;
+          margin: 0 auto;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
         }
 
-        .demo-wrapper img,
-        .demo-wrapper video {
-          width: 100%;
-          height: auto;
-          display: block;
-          object-fit: cover;
-          transform: scale(1.15);
+        .how-step {
+          display: flex;
+          gap: 20px;
+          align-items: flex-start;
+          padding: 24px 28px;
+          background: #fafafa;
+          border-radius: 20px;
+          border: 1px solid #e5e5e5;
+          transition: all 0.3s;
+        }
+
+        .how-step:hover {
+          background: #ffffff;
+          box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
+        }
+
+        .how-step-number {
+          width: 44px;
+          height: 44px;
+          border-radius: 12px;
+          background: #0a0a0a;
+          color: #ffffff;
+          font-size: 1.15rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .how-step-text h4 {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #0a0a0a;
+          margin-bottom: 6px;
+        }
+
+        .how-step-text p {
+          font-size: 0.95rem;
+          color: #525252;
+          line-height: 1.65;
+        }
+
+        .how-step-text strong {
+          color: #0a0a0a;
+          font-weight: 600;
         }
 
         /* Benefits Section */
@@ -2043,15 +2045,61 @@ const Home: NextPage = () => {
                 improvements.
               </p>
             </div>
-            <div className="demo-wrapper">
-              <LazyVideo
-                src="/Rewordly - How it works.mp4"
-                autoPlay
-                loop
-                muted
-                playsInline
-                poster="/hero-image.png"
-              />
+            <div className="how-steps">
+              <div className="how-step">
+                <div className="how-step-number">1</div>
+                <div className="how-step-text">
+                  <h4>Select text</h4>
+                  <p>
+                    Select any text (3+ characters) on a webpage — in inputs,
+                    textareas, or contenteditable areas.
+                  </p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-step-number">2</div>
+                <div className="how-step-text">
+                  <h4>Floating button</h4>
+                  <p>
+                    A floating button appears next to the selection with two
+                    actions: <strong>Rewrite</strong> (rewrite with AI) and{" "}
+                    <strong>Check Grammar</strong> (fix grammar and spelling).
+                  </p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-step-number">3</div>
+                <div className="how-step-text">
+                  <h4>Modal</h4>
+                  <p>
+                    A modal shows the original and the result (rewritten or
+                    corrected) text side by side.
+                  </p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-step-number">4</div>
+                <div className="how-step-text">
+                  <h4>Copy</h4>
+                  <p>
+                    One-click copy of the result to your clipboard. Use the
+                    extension popup to enable or disable the button, or
+                    right-click for context menu: Rewordly → Rewrite Text,
+                    Rewordly → Check Grammar, or disable/enable on the current
+                    page.
+                  </p>
+                </div>
+              </div>
+              <div className="how-step">
+                <div className="how-step-number">5</div>
+                <div className="how-step-text">
+                  <h4>Welcome &amp; changelog</h4>
+                  <p>
+                    Welcome page on first install and changelog when you update
+                    the extension.
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
