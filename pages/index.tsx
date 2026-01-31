@@ -888,10 +888,6 @@ const Home: NextPage = () => {
           max-width: 700px;
         }
 
-        .benefits-image-wrapper {
-          aspect-ratio: 560 / 400;
-        }
-
         .demo-wrapper video {
           aspect-ratio: 16 / 9;
         }
@@ -1416,6 +1412,8 @@ const Home: NextPage = () => {
           display: flex;
           justify-content: center;
           align-items: center;
+          max-width: 560px;
+          margin: 0 auto;
         }
 
         .benefits-image-wrapper img,
@@ -1424,6 +1422,7 @@ const Home: NextPage = () => {
           height: auto;
           display: block;
           object-fit: contain;
+          object-position: center;
           max-width: 560px;
         }
 
