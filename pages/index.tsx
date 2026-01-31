@@ -952,8 +952,8 @@ const Home: NextPage = () => {
 
         /* Stats Card - Top Right */
         .floating-stats-card {
-          top: 5%;
-          right: 0%;
+          top: 0%;
+          right: -5%;
           padding: 16px 20px;
           display: flex;
           align-items: center;
@@ -1388,7 +1388,8 @@ const Home: NextPage = () => {
           width: 100%;
           height: auto;
           display: block;
-          object-fit: contain;
+          object-fit: cover;
+          transform: scale(1.15);
         }
 
         /* Benefits Section */
@@ -1817,7 +1818,7 @@ const Home: NextPage = () => {
                   rel="noopener noreferrer"
                   className="btn-primary"
                 >
-                  <ChromeIcon size={20} color="#292D32" />
+                  <ChromeIcon size={20} color="#fff" />
                   Add to Chrome - It's Free
                 </a>
                 <a href="#demo" className="btn-secondary">
@@ -1911,7 +1912,7 @@ const Home: NextPage = () => {
               
               <div className="hero-image-container">
                 <Image
-                  src="/hero-image.png"
+                  src="/hero-image-2.png"
                   alt="Rewordly - AI-powered text enhancement"
                   width={700}
                   height={500}
@@ -2047,7 +2048,7 @@ const Home: NextPage = () => {
               <div className="benefits-image">
                 <div className="benefits-image-wrapper">
                   <Image
-                    src="/why-choose-image.png"
+                    src="/why-choose-image-2.png"
                     alt="Why choose Rewordly - AI text enhancement"
                     width={560}
                     height={400}
