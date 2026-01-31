@@ -409,13 +409,14 @@ const RocketIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 );
 
-const ChromeIcon = ({ size = 24, color = "#292D32" }: { size?: number, color?: string }) => (
+const ChromeIcon = ({ size = 24, color = "#0a0a0a" }: { size?: number, color?: string }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width={size}
     height={size}
     viewBox="0 0 24 24"
-     fill="currentColor"
+    fill="currentColor"
+    style={{ color }}
   >
     <path
       d="M11.8195 6.9C14.6795 6.28 17.5795 6.19 20.4495 6.66C18.6795 3.86 15.5595 2 11.9995 2C8.88953 2 6.10953 3.42 4.26953 5.65C4.70953 6.95 5.26953 8.19 5.93953 9.37C6.31953 10.05 7.28953 10.02 7.67953 9.35C8.52953 7.92 10.0595 6.96 11.8195 6.9Z"
@@ -970,6 +971,7 @@ const Home: NextPage = () => {
           justify-content: center;
           color: #ffffff;
           font-size: 1.2rem;
+          filter: grayscale(1);
         }
 
         .floating-stats-content {
@@ -1321,6 +1323,7 @@ const Home: NextPage = () => {
           justify-content: center;
           margin-bottom: 20px;
           font-size: 1.5rem;
+          filter: grayscale(1);
         }
 
         .feature-icon-1 {
@@ -1455,6 +1458,7 @@ const Home: NextPage = () => {
           box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
           font-size: 1.25rem;
           color: #525252;
+          filter: grayscale(1);
         }
 
         .benefit-text h4 {
