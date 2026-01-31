@@ -1711,7 +1711,19 @@ const Home: NextPage = () => {
           }
 
           .hero {
-            padding: 120px 20px 60px;
+            min-height: 100vh;
+            padding: 100px 20px 40px;
+            display: flex;
+            align-items: center;
+          }
+
+          .hero-container {
+            width: 100%;
+            align-content: center;
+          }
+
+          .hero-visual {
+            display: none;
           }
 
           .hero-stats {
@@ -1744,6 +1756,10 @@ const Home: NextPage = () => {
           .footer-links {
             flex-wrap: wrap;
             justify-content: center;
+          }
+
+          .cta-btn svg {
+            display: none;
           }
         }
       `}</style>
