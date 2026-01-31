@@ -504,9 +504,9 @@ const Home: NextPage = () => {
         />
         <link rel="manifest" href="/site.webmanifest" />
 
-        {/* Theme Colors */}
-        <meta name="theme-color" content="#8B5CF6" />
-        <meta name="msapplication-TileColor" content="#EC4899" />
+        {/* Theme Colors - Monochrome */}
+        <meta name="theme-color" content="#0a0a0a" />
+        <meta name="msapplication-TileColor" content="#0a0a0a" />
 
         <link rel="canonical" href="https://rewordly-web.vercel.app/" />
       </Head>
@@ -523,10 +523,10 @@ const Home: NextPage = () => {
             "Segoe UI", sans-serif;
           -webkit-font-smoothing: antialiased;
           -moz-osx-font-smoothing: grayscale;
-          color: #1a1a2e;
+          color: #171717;
           line-height: 1.6;
           overflow-x: hidden;
-          background: #fefefe;
+          background: #ffffff;
         }
 
         /* Navbar */
@@ -540,18 +540,15 @@ const Home: NextPage = () => {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          background: rgba(255, 255, 255, 0.95);
+          background: rgba(255, 255, 255, 0.98);
           backdrop-filter: blur(20px);
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+          border-bottom: 1px solid #e5e5e5;
         }
 
         .nav-logo {
           font-size: 1.5rem;
           font-weight: 800;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #0a0a0a;
           text-decoration: none;
         }
 
@@ -562,7 +559,7 @@ const Home: NextPage = () => {
         }
 
         .nav-link {
-          color: #4a4a68;
+          color: #525252;
           text-decoration: none;
           font-weight: 500;
           font-size: 0.95rem;
@@ -570,23 +567,24 @@ const Home: NextPage = () => {
         }
 
         .nav-link:hover {
-          color: #8b5cf6;
+          color: #0a0a0a;
         }
 
         .nav-cta {
           padding: 12px 28px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          color: white;
+          background: #0a0a0a;
+          color: #ffffff;
           border-radius: 50px;
           font-weight: 600;
           text-decoration: none;
           transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
         }
 
         .nav-cta:hover {
           transform: translateY(-2px);
-          box-shadow: 0 6px 25px rgba(139, 92, 246, 0.4);
+          background: #262626;
+          box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
         }
 
         .mobile-menu-btn {
@@ -603,9 +601,9 @@ const Home: NextPage = () => {
           padding: 140px 40px 60px;
           background: linear-gradient(
             180deg,
-            #faf5ff 0%,
-            #fdf2f8 50%,
-            #fff 100%
+            #fafafa 0%,
+            #f5f5f5 50%,
+            #ffffff 100%
           );
           position: relative;
           overflow: hidden;
@@ -636,8 +634,7 @@ const Home: NextPage = () => {
           height: 400px;
           background: radial-gradient(
             circle,
-            rgba(139, 92, 246, 0.12) 0%,
-            rgba(236, 72, 153, 0.08) 40%,
+            rgba(0, 0, 0, 0.04) 0%,
             transparent 70%
           );
           border-radius: 50%;
@@ -654,7 +651,7 @@ const Home: NextPage = () => {
           height: 250px;
           background: radial-gradient(
             circle,
-            rgba(236, 72, 153, 0.1) 0%,
+            rgba(0, 0, 0, 0.03) 0%,
             transparent 70%
           );
           border-radius: 50%;
@@ -675,7 +672,7 @@ const Home: NextPage = () => {
           left: -30px;
           width: 60px;
           height: 60px;
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.2) 0%, rgba(168, 85, 247, 0.15) 100%);
+          background: rgba(0, 0, 0, 0.06);
           filter: blur(15px);
         }
 
@@ -684,7 +681,7 @@ const Home: NextPage = () => {
           right: 10%;
           width: 40px;
           height: 40px;
-          background: rgba(251, 191, 36, 0.25);
+          background: rgba(0, 0, 0, 0.05);
           filter: blur(12px);
         }
 
@@ -700,15 +697,12 @@ const Home: NextPage = () => {
         .stat-value {
           font-size: 2rem;
           font-weight: 800;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #0a0a0a;
         }
 
         .stat-label {
           font-size: 0.9rem;
-          color: #64748b;
+          color: #737373;
           font-weight: 500;
         }
 
@@ -717,22 +711,19 @@ const Home: NextPage = () => {
           align-items: center;
           gap: 8px;
           padding: 8px 16px;
-          background: linear-gradient(
-            135deg,
-            rgba(139, 92, 246, 0.1) 0%,
-            rgba(236, 72, 153, 0.1) 100%
-          );
+          background: rgba(0, 0, 0, 0.06);
+          border: 1px solid #e5e5e5;
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #8b5cf6;
+          color: #525252;
           margin-bottom: 24px;
         }
 
         .hero-badge-dot {
           width: 8px;
           height: 8px;
-          background: #10b981;
+          background: #0a0a0a;
           border-radius: 50%;
           animation: pulse 2s infinite;
         }
@@ -752,19 +743,18 @@ const Home: NextPage = () => {
           font-weight: 800;
           line-height: 1.15;
           margin-bottom: 24px;
-          color: #1a1a2e;
+          color: #0a0a0a;
         }
 
         .hero h1 span {
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #0a0a0a;
+          text-decoration: underline;
+          text-underline-offset: 0.2em;
         }
 
         .hero-description {
           font-size: 1.15rem;
-          color: #64748b;
+          color: #525252;
           margin-bottom: 32px;
           line-height: 1.7;
         }
@@ -781,19 +771,20 @@ const Home: NextPage = () => {
           align-items: center;
           gap: 10px;
           padding: 16px 32px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          color: white;
+          background: #0a0a0a;
+          color: #ffffff;
           border-radius: 50px;
           font-weight: 600;
           font-size: 1rem;
           text-decoration: none;
           transition: all 0.3s;
-          box-shadow: 0 8px 30px rgba(139, 92, 246, 0.3);
+          box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
         }
 
         .btn-primary:hover {
           transform: translateY(-3px);
-          box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
+          background: #262626;
+          box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
         }
 
         .btn-secondary {
@@ -801,9 +792,9 @@ const Home: NextPage = () => {
           align-items: center;
           gap: 10px;
           padding: 16px 32px;
-          background: white;
-          color: #4a4a68;
-          border: 2px solid #e5e7eb;
+          background: #ffffff;
+          color: #525252;
+          border: 2px solid #e5e5e5;
           border-radius: 50px;
           font-weight: 600;
           font-size: 1rem;
@@ -812,8 +803,8 @@ const Home: NextPage = () => {
         }
 
         .btn-secondary:hover {
-          border-color: #8b5cf6;
-          color: #8b5cf6;
+          border-color: #0a0a0a;
+          color: #0a0a0a;
         }
 
         /* Hero Visual */
@@ -834,8 +825,7 @@ const Home: NextPage = () => {
           height: 600px;
           background: radial-gradient(
             circle,
-            rgba(236, 72, 153, 0.25) 0%,
-            rgba(139, 92, 246, 0.15) 40%,
+            rgba(0, 0, 0, 0.06) 0%,
             transparent 70%
           );
           border-radius: 50%;
@@ -852,7 +842,7 @@ const Home: NextPage = () => {
           height: 300px;
           background: radial-gradient(
             circle,
-            rgba(139, 92, 246, 0.2) 0%,
+            rgba(0, 0, 0, 0.04) 0%,
             transparent 70%
           );
           border-radius: 50%;
@@ -875,7 +865,7 @@ const Home: NextPage = () => {
           height: 40px;
           background: radial-gradient(
             ellipse,
-            rgba(139, 92, 246, 0.15) 0%,
+            rgba(0, 0, 0, 0.05) 0%,
             transparent 70%
           );
           filter: blur(15px);
@@ -917,7 +907,7 @@ const Home: NextPage = () => {
           right: 5%;
           width: 80px;
           height: 80px;
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.3) 0%, rgba(236, 72, 153, 0.2) 100%);
+          background: rgba(0, 0, 0, 0.06);
           filter: blur(20px);
         }
 
@@ -926,7 +916,7 @@ const Home: NextPage = () => {
           left: 0%;
           width: 120px;
           height: 120px;
-          background: linear-gradient(135deg, rgba(236, 72, 153, 0.25) 0%, rgba(139, 92, 246, 0.15) 100%);
+          background: rgba(0, 0, 0, 0.05);
           filter: blur(25px);
         }
 
@@ -935,16 +925,17 @@ const Home: NextPage = () => {
           right: 0%;
           width: 60px;
           height: 60px;
-          background: rgba(251, 191, 36, 0.3);
+          background: rgba(0, 0, 0, 0.05);
           filter: blur(15px);
         }
 
         /* Floating Cards */
         .floating-card {
           position: absolute;
-          background: white;
+          background: #ffffff;
           border-radius: 16px;
-          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.12);
+          border: 1px solid #e5e5e5;
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
           z-index: 10;
           animation: float 4s ease-in-out infinite;
         }
@@ -973,11 +964,11 @@ const Home: NextPage = () => {
           width: 44px;
           height: 44px;
           border-radius: 12px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: #0a0a0a;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: #ffffff;
           font-size: 1.2rem;
         }
 
@@ -989,13 +980,13 @@ const Home: NextPage = () => {
         .floating-stats-value {
           font-size: 1.25rem;
           font-weight: 800;
-          color: #1a1a2e;
+          color: #0a0a0a;
           line-height: 1.2;
         }
 
         .floating-stats-label {
           font-size: 0.75rem;
-          color: #64748b;
+          color: #737373;
           font-weight: 500;
         }
 
@@ -1019,11 +1010,11 @@ const Home: NextPage = () => {
           width: 36px;
           height: 36px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: #0a0a0a;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: #ffffff;
           font-weight: 600;
           font-size: 0.8rem;
           overflow: hidden;
@@ -1043,18 +1034,18 @@ const Home: NextPage = () => {
         .floating-testimonial-name {
           font-size: 0.85rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
           line-height: 1.2;
         }
 
         .floating-testimonial-stars {
-          color: #fbbf24;
+          color: #525252;
           font-size: 0.7rem;
         }
 
         .floating-testimonial-text {
           font-size: 0.75rem;
-          color: #64748b;
+          color: #737373;
           line-height: 1.5;
         }
 
@@ -1077,13 +1068,13 @@ const Home: NextPage = () => {
           width: 32px;
           height: 32px;
           border-radius: 50%;
-          border: 2px solid white;
+          border: 2px solid #ffffff;
           margin-left: -10px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: #262626;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: #ffffff;
           font-size: 0.7rem;
           font-weight: 600;
           overflow: hidden;
@@ -1107,13 +1098,13 @@ const Home: NextPage = () => {
         .floating-users-count {
           font-size: 0.9rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
           line-height: 1.2;
         }
 
         .floating-users-label {
           font-size: 0.7rem;
-          color: #64748b;
+          color: #737373;
         }
 
         /* Rating Card - Bottom Right */
@@ -1131,11 +1122,11 @@ const Home: NextPage = () => {
           width: 40px;
           height: 40px;
           border-radius: 10px;
-          background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+          background: #0a0a0a;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: #ffffff;
           font-size: 1.1rem;
         }
 
@@ -1147,13 +1138,13 @@ const Home: NextPage = () => {
         .floating-rating-value {
           font-size: 1rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
           line-height: 1.2;
         }
 
         .floating-rating-label {
           font-size: 0.7rem;
-          color: #64748b;
+          color: #737373;
         }
 
         .floating-badge {
@@ -1172,15 +1163,16 @@ const Home: NextPage = () => {
         .floating-badge-1 {
           top: -20px;
           right: -20px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
-          color: white;
+          background: #0a0a0a;
+          color: #ffffff;
         }
 
         .floating-badge-2 {
           bottom: 40px;
           left: -30px;
-          background: white;
-          color: #1a1a2e;
+          background: #ffffff;
+          color: #0a0a0a;
+          border: 1px solid #e5e5e5;
         }
 
         .floating-badge-icon {
@@ -1198,16 +1190,16 @@ const Home: NextPage = () => {
         }
 
         .floating-badge-2 .floating-badge-icon {
-          background: linear-gradient(135deg, #10b981 0%, #34d399 100%);
-          color: white;
+          background: #0a0a0a;
+          color: #ffffff;
         }
 
         /* Trusted Section */
         .trusted-section {
           padding: 60px 40px;
-          background: white;
-          border-top: 1px solid #f1f5f9;
-          border-bottom: 1px solid #f1f5f9;
+          background: #ffffff;
+          border-top: 1px solid #e5e5e5;
+          border-bottom: 1px solid #e5e5e5;
         }
 
         .trusted-container {
@@ -1218,7 +1210,7 @@ const Home: NextPage = () => {
 
         .trusted-title {
           font-size: 0.9rem;
-          color: #94a3b8;
+          color: #737373;
           font-weight: 500;
           margin-bottom: 24px;
           text-transform: uppercase;
@@ -1231,19 +1223,19 @@ const Home: NextPage = () => {
           justify-content: center;
           gap: 48px;
           flex-wrap: wrap;
-          opacity: 0.6;
+          opacity: 0.7;
         }
 
         .trusted-logo {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #64748b;
+          color: #525252;
         }
 
         /* Features Section */
         .features-section {
           padding: 100px 40px;
-          background: linear-gradient(180deg, #fff 0%, #faf5ff 100%);
+          background: linear-gradient(180deg, #ffffff 0%, #fafafa 100%);
         }
 
         .section-container {
@@ -1260,28 +1252,25 @@ const Home: NextPage = () => {
         .section-label {
           display: inline-block;
           padding: 8px 16px;
-          background: linear-gradient(
-            135deg,
-            rgba(139, 92, 246, 0.1) 0%,
-            rgba(236, 72, 153, 0.1) 100%
-          );
+          background: rgba(0, 0, 0, 0.06);
+          border: 1px solid #e5e5e5;
           border-radius: 50px;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #8b5cf6;
+          color: #525252;
           margin-bottom: 16px;
         }
 
         .section-title {
           font-size: clamp(2rem, 4vw, 2.75rem);
           font-weight: 800;
-          color: #1a1a2e;
+          color: #0a0a0a;
           margin-bottom: 16px;
         }
 
         .section-subtitle {
           font-size: 1.1rem;
-          color: #64748b;
+          color: #525252;
           line-height: 1.7;
         }
 
@@ -1292,10 +1281,10 @@ const Home: NextPage = () => {
         }
 
         .feature-card {
-          background: white;
+          background: #ffffff;
           border-radius: 24px;
           padding: 32px;
-          border: 1px solid #f1f5f9;
+          border: 1px solid #e5e5e5;
           transition: all 0.3s;
           position: relative;
           overflow: hidden;
@@ -1308,15 +1297,15 @@ const Home: NextPage = () => {
           left: 0;
           right: 0;
           height: 4px;
-          background: linear-gradient(90deg, #8b5cf6, #ec4899);
+          background: #0a0a0a;
           opacity: 0;
           transition: opacity 0.3s;
         }
 
         .feature-card:hover {
           transform: translateY(-8px);
-          box-shadow: 0 20px 60px rgba(139, 92, 246, 0.15);
-          border-color: transparent;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+          border-color: #d4d4d4;
         }
 
         .feature-card:hover::before {
@@ -1335,41 +1324,47 @@ const Home: NextPage = () => {
         }
 
         .feature-icon-1 {
-          background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+          background: #f5f5f5;
+          color: #525252;
         }
         .feature-icon-2 {
-          background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+          background: #e5e5e5;
+          color: #525252;
         }
         .feature-icon-3 {
-          background: linear-gradient(135deg, #ede9fe 0%, #fce7f3 100%);
+          background: #f5f5f5;
+          color: #525252;
         }
         .feature-icon-4 {
-          background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+          background: #e5e5e5;
+          color: #525252;
         }
         .feature-icon-5 {
-          background: linear-gradient(135deg, #fce7f3 0%, #fbcfe8 100%);
+          background: #f5f5f5;
+          color: #525252;
         }
         .feature-icon-6 {
-          background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
+          background: #e5e5e5;
+          color: #525252;
         }
 
         .feature-card h3 {
           font-size: 1.25rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
           margin-bottom: 12px;
         }
 
         .feature-card p {
           font-size: 0.95rem;
-          color: #64748b;
+          color: #525252;
           line-height: 1.7;
         }
 
         /* Demo Section */
         .demo-section {
           padding: 100px 40px;
-          background: white;
+          background: #ffffff;
         }
 
         .demo-container {
@@ -1381,8 +1376,8 @@ const Home: NextPage = () => {
           position: relative;
           border-radius: 24px;
           overflow: hidden;
-          box-shadow: 0 30px 100px rgba(139, 92, 246, 0.2);
-          border: 1px solid rgba(139, 92, 246, 0.1);
+          box-shadow: 0 30px 100px rgba(0, 0, 0, 0.1);
+          border: 1px solid #e5e5e5;
         }
 
         .demo-wrapper img,
@@ -1396,7 +1391,7 @@ const Home: NextPage = () => {
         /* Benefits Section */
         .benefits-section {
           padding: 100px 40px;
-          background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
+          background: linear-gradient(135deg, #fafafa 0%, #f5f5f5 100%);
         }
 
         .benefits-grid {
@@ -1431,15 +1426,14 @@ const Home: NextPage = () => {
         .benefits-content h2 {
           font-size: clamp(1.75rem, 3vw, 2.25rem);
           font-weight: 800;
-          color: #1a1a2e;
+          color: #0a0a0a;
           margin-bottom: 32px;
         }
 
         .benefits-content h2 span {
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #0a0a0a;
+          text-decoration: underline;
+          text-underline-offset: 0.2em;
         }
 
         .benefit-item {
@@ -1452,32 +1446,34 @@ const Home: NextPage = () => {
           width: 48px;
           height: 48px;
           border-radius: 12px;
-          background: white;
+          background: #ffffff;
+          border: 1px solid #e5e5e5;
           display: flex;
           align-items: center;
           justify-content: center;
           flex-shrink: 0;
-          box-shadow: 0 4px 15px rgba(139, 92, 246, 0.1);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
           font-size: 1.25rem;
+          color: #525252;
         }
 
         .benefit-text h4 {
           font-size: 1.1rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
           margin-bottom: 4px;
         }
 
         .benefit-text p {
           font-size: 0.9rem;
-          color: #64748b;
+          color: #525252;
           line-height: 1.6;
         }
 
         /* Testimonials */
         .testimonials-section {
           padding: 100px 40px;
-          background: white;
+          background: #ffffff;
         }
 
         .testimonials-grid {
@@ -1487,16 +1483,16 @@ const Home: NextPage = () => {
         }
 
         .testimonial-card {
-          background: linear-gradient(135deg, #faf5ff 0%, #fdf2f8 100%);
+          background: #fafafa;
           border-radius: 24px;
           padding: 32px;
-          border: 1px solid rgba(139, 92, 246, 0.1);
+          border: 1px solid #e5e5e5;
           transition: all 0.3s;
         }
 
         .testimonial-card:hover {
           transform: translateY(-5px);
-          box-shadow: 0 15px 50px rgba(139, 92, 246, 0.1);
+          box-shadow: 0 15px 50px rgba(0, 0, 0, 0.06);
         }
 
         .testimonial-header {
@@ -1510,11 +1506,11 @@ const Home: NextPage = () => {
           width: 48px;
           height: 48px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: #0a0a0a;
           display: flex;
           align-items: center;
           justify-content: center;
-          color: white;
+          color: #ffffff;
           font-weight: 700;
           font-size: 1rem;
           overflow: hidden;
@@ -1529,24 +1525,24 @@ const Home: NextPage = () => {
         .testimonial-info h4 {
           font-size: 1rem;
           font-weight: 700;
-          color: #1a1a2e;
+          color: #0a0a0a;
         }
 
         .testimonial-rating {
-          color: #fbbf24;
+          color: #525252;
           font-size: 0.85rem;
         }
 
         .testimonial-text {
           font-size: 0.95rem;
-          color: #64748b;
+          color: #525252;
           line-height: 1.7;
         }
 
         /* CTA Section */
         .cta-section {
           padding: 100px 40px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: #0a0a0a;
           text-align: center;
           position: relative;
           overflow: hidden;
@@ -1559,7 +1555,7 @@ const Home: NextPage = () => {
           left: -50%;
           width: 200%;
           height: 200%;
-          background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
+          background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="1.5" fill="rgba(255,255,255,0.06)"/></svg>');
         }
 
         .cta-container {
@@ -1572,13 +1568,13 @@ const Home: NextPage = () => {
         .cta-section h2 {
           font-size: clamp(2rem, 4vw, 2.75rem);
           font-weight: 800;
-          color: white;
+          color: #ffffff;
           margin-bottom: 16px;
         }
 
         .cta-section p {
           font-size: 1.15rem;
-          color: rgba(255, 255, 255, 0.9);
+          color: rgba(255, 255, 255, 0.85);
           margin-bottom: 32px;
           line-height: 1.7;
         }
@@ -1588,8 +1584,8 @@ const Home: NextPage = () => {
           align-items: center;
           gap: 10px;
           padding: 18px 40px;
-          background: white;
-          color: #8b5cf6;
+          background: #ffffff;
+          color: #0a0a0a;
           border-radius: 50px;
           font-weight: 700;
           font-size: 1.1rem;
@@ -1600,13 +1596,14 @@ const Home: NextPage = () => {
 
         .cta-btn:hover {
           transform: translateY(-3px) scale(1.02);
+          background: #f5f5f5;
           box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
         }
 
         /* Footer */
         .footer {
-          background: #0f0f1a;
-          color: white;
+          background: #0a0a0a;
+          color: #ffffff;
           padding: 60px 40px 40px;
         }
 
@@ -1623,10 +1620,7 @@ const Home: NextPage = () => {
         .footer-logo {
           font-size: 1.5rem;
           font-weight: 800;
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: #ffffff;
         }
 
         .footer-links {
@@ -1635,19 +1629,19 @@ const Home: NextPage = () => {
         }
 
         .footer-link {
-          color: #94a3b8;
+          color: #a3a3a3;
           text-decoration: none;
           font-size: 0.95rem;
           transition: color 0.2s;
         }
 
         .footer-link:hover {
-          color: white;
+          color: #ffffff;
         }
 
         .footer-copyright {
           font-size: 0.9rem;
-          color: #64748b;
+          color: #a3a3a3;
         }
 
         /* Responsive */
@@ -1784,7 +1778,7 @@ const Home: NextPage = () => {
               height="24"
               viewBox="0 0 24 24"
               fill="none"
-              stroke="#1a1a2e"
+              stroke="#0a0a0a"
               strokeWidth="2"
             >
               <path d="M3 12h18M3 6h18M3 18h18" />
@@ -1881,7 +1875,7 @@ const Home: NextPage = () => {
                   <div className="avatar">+5</div>
                 </div>
                 <div className="floating-users-text">
-                  <span className="floating-users-count">30+ Users</span>
+                  <span className="floating-users-count">40+ Users</span>
                   <span className="floating-users-label">Happy Writers</span>
                 </div>
               </div>
@@ -2206,7 +2200,7 @@ const Home: NextPage = () => {
               rel="noopener noreferrer"
               className="cta-btn"
             >
-             <ChromeIcon size={24} color="#292D32" />
+             <ChromeIcon size={24} color="#0a0a0a" />
               Add to Chrome - It's Free
             </a>
           </div>
