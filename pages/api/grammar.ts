@@ -1,9 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { checkGrammar, checkGrammarWithOpenAI } from '../../lib/services/grammarService';
-import { rewriteText } from '../../lib/openai';
+import { checkGrammarWithOpenAI } from '../../lib/services/grammarService';
 import { GrammarRequest, GrammarCheckResponse, ApiError } from '../../lib/types/grammar';
 
-// CORS headers for Chrome Extension
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -15,7 +13,6 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse<GrammarCheckResponse | ApiError>
 ) {
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -24,7 +21,6 @@ export default async function handler(
     return;
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.status(405).json({
@@ -34,14 +30,12 @@ export default async function handler(
     return;
   }
 
-  // Set CORS headers for all responses
   Object.entries(corsHeaders).forEach(([key, value]) => {
     res.setHeader(key, value);
   });
 
   try {
-    // Parse and validate request body
-    const { text, mode = 'default' }: GrammarRequest = req.body;
+    const { text }: GrammarRequest = req.body;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       res.status(400).json({
@@ -51,7 +45,6 @@ export default async function handler(
       return;
     }
 
-    // Validate text length (prevent abuse)
     if (text.length > 10000) {
       res.status(400).json({
         error: 'Bad Request',
@@ -60,41 +53,11 @@ export default async function handler(
       return;
     }
 
-    // Validate mode
-    if (mode && mode !== 'default' && mode !== 'ai') {
-      res.status(400).json({
-        error: 'Bad Request',
-        message: 'Mode must be either "default" or "ai"'
-      });
-      return;
-    }
-
-    let result: GrammarCheckResponse;
-
-    // If mode is 'ai', use OpenAI rewrite directly
-    if (mode === 'ai') {
-      const rewriteResult = await checkGrammarWithOpenAI(text);
-      result = {
-        errors: [], // No errors array needed for AI rewrite
-        corrected: rewriteResult.corrected,
-      };
-    } else {
-      // Try LanguageTool first, fallback to OpenAI if needed
-      try {
-        result = await checkGrammar(text);
-      } catch (languageToolError) {
-        console.warn('LanguageTool failed, falling back to OpenAI:', languageToolError);
-        // Fallback to OpenAI if LanguageTool fails
-        result = await checkGrammarWithOpenAI(text);
-      }
-    }
-    
+    const result = await checkGrammarWithOpenAI(text);
     res.status(200).json(result);
   } catch (error) {
     console.error('API Error:', error);
-    
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    
     res.status(500).json({
       error: 'Internal Server Error',
       message: errorMessage

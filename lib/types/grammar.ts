@@ -3,73 +3,27 @@
  */
 
 export interface GrammarError {
-  start: number;        // Character position where error starts (0-indexed)
-  end: number;          // Character position where error ends (exclusive, 0-indexed)
-  word: string;         // The incorrect word/phrase
-  suggestions: string[]; // Array of suggested corrections
-  type: 'grammar' | 'spelling'; // Error type
+  start: number;
+  end: number;
+  word: string;
+  suggestions: string[];
+  type: 'grammar' | 'spelling';
 }
 
 export interface GrammarCheckResponse {
-  errors: GrammarError[]; // Array of grammar errors found
-  corrected: string;     // The corrected version of the text
-  detectedLanguage?: {   // Detected language information
-    code: string;        // Language code (e.g., 'en-US', 'tr-TR')
-    name: string;        // Language name (e.g., 'English (US)', 'Turkish')
+  errors: GrammarError[];
+  corrected: string;
+  detectedLanguage?: {
+    code: string;
+    name: string;
   };
 }
 
 export interface GrammarRequest {
   text: string;
-  mode?: 'default' | 'ai'; // 'default' uses LanguageTool, 'ai' uses OpenAI rewrite
 }
 
 export interface ApiError {
   error: string;
   message: string;
 }
-
-/**
- * LanguageTool API Response Types
- */
-export interface LanguageToolMatch {
-  message: string;
-  shortMessage: string;
-  replacements: Array<{ value: string }>;
-  offset: number;
-  length: number;
-  context: {
-    text: string;
-    offset: number;
-    length: number;
-  };
-  sentence: string;
-  rule: {
-    id: string;
-    description: string;
-    category: {
-      id: string;
-      name: string;
-    };
-  };
-}
-
-export interface LanguageToolResponse {
-  matches: LanguageToolMatch[];
-  software: {
-    name: string;
-    version: string;
-  };
-  language: {
-    name: string;
-    code: string;
-    detectedLanguage: {
-      code?: string;
-      name?: string;
-      confidence?: number;
-      source?: string;
-    } | undefined;
-  };
-}
-
-

@@ -447,7 +447,7 @@ const Home: NextPage = () => {
         </title>
         <meta
           name="description"
-          content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. Select any text, click, and get an improved version instantly. 100% free, no sign-up required."
+          content="AI-powered Chrome extension for text rewriting and grammar check. Select any text, click, and get an improved version. 100% free, no sign-up required."
         />
         <meta
           name="keywords"
@@ -465,7 +465,7 @@ const Home: NextPage = () => {
         />
         <meta
           property="og:description"
-          content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. 100% free, no sign-up required."
+          content="AI-powered Chrome extension for text rewriting and grammar check. 100% free, no sign-up required."
         />
 
         {/* Twitter */}
@@ -480,7 +480,7 @@ const Home: NextPage = () => {
         />
         <meta
           property="twitter:description"
-          content="AI-powered Chrome extension for text rewriting with real-time grammar and spelling check. 100% free, no sign-up required."
+          content="AI-powered Chrome extension for text rewriting and grammar check. 100% free, no sign-up required."
         />
 
         {/* Favicons */}
@@ -1846,7 +1846,7 @@ const Home: NextPage = () => {
                   <div className="stat-label">Chrome Store Rating</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-value">30+</div>
+                  <div className="stat-value">40+</div>
                   <div className="stat-label">Happy Users</div>
                 </div>
               </div>
@@ -1970,7 +1970,7 @@ const Home: NextPage = () => {
                 <div className="feature-icon-wrapper feature-icon-2">✓</div>
                 <h3>Grammar Check</h3>
                 <p>
-                  Real-time grammar analysis with detailed error highlighting.
+                  AI grammar analysis with detailed error highlighting.
                   See exactly what's wrong and how to fix it.
                 </p>
               </div>
@@ -2031,7 +2031,7 @@ const Home: NextPage = () => {
             </div>
             <div className="demo-wrapper">
               <LazyVideo
-                src="/Reddit with AI Review and Grammar check with animation.mp4"
+                src="/Rewordly - How it works.mp4"
                 autoPlay
                 loop
                 muted
