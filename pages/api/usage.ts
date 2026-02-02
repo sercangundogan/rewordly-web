@@ -40,13 +40,13 @@ export default async function handler(
   try {
     const auth = req.headers.authorization;
     const anonymousId = req.headers['x-anonymous-id'] as string | undefined;
-    const { userId, tier } = await getAuthFromRequest(auth, anonymousId);
+    const { userId, tier, email } = await getAuthFromRequest(auth, anonymousId);
     const usage = await getUsage(userId, anonymousId);
 
     const rewriteLimit = limitValue(tier, 'rewrite');
     const grammarLimit = limitValue(tier, 'grammar');
 
-    res.status(200).json({
+    const payload: Record<string, unknown> = {
       rewriteUsed: usage.rewrite,
       rewriteLimit: rewriteLimit === -1 ? null : rewriteLimit,
       grammarUsed: usage.grammar,
@@ -54,7 +54,9 @@ export default async function handler(
       isSubscribed: tier === 'pro',
       requireLogin: tier === 'anonymous',
       requirePayment: tier === 'free',
-    });
+    };
+    if (email) payload.user = { email };
+    res.status(200).json(payload);
   } catch (error) {
     console.error('Usage API error:', error);
     res.setHeader('Access-Control-Allow-Origin', '*');

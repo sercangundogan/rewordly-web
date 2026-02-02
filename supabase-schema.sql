@@ -41,5 +41,19 @@ CREATE POLICY "Service role only usage" ON public.usage
 CREATE POLICY "Service role only subscriptions" ON public.subscriptions
   FOR ALL USING (false);
 
--- Note: With service_role key, RLS is bypassed. These policies block anon/authenticated;
--- your API uses service_role so it can still read/write.
+-- One-time codes to link website login to extension (code -> access_token, 5 min TTL)
+CREATE TABLE IF NOT EXISTS public.connection_codes (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  code TEXT NOT NULL UNIQUE,
+  access_token TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_connection_codes_code ON public.connection_codes (code);
+CREATE INDEX IF NOT EXISTS idx_connection_codes_expires ON public.connection_codes (expires_at);
+
+ALTER TABLE public.connection_codes ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Service role only connection_codes" ON public.connection_codes FOR ALL USING (false);
+
+-- Note: With service_role key, RLS is bypassed. Your API uses service_role so it can still read/write.

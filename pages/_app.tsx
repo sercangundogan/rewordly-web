@@ -1,6 +1,7 @@
 import type { AppProps } from "next/app";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import dynamic from "next/dynamic";
+import "../styles/globals.css";
 
 const plusJakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
