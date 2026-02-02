@@ -1,11 +1,12 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { checkGrammarWithOpenAI } from '../../lib/services/grammarService';
 import { GrammarRequest, GrammarCheckResponse, ApiError } from '../../lib/types/grammar';
+import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Anonymous-Id',
   'Content-Type': 'application/json',
 };
 
@@ -16,7 +17,7 @@ export default async function handler(
   if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Anonymous-Id');
     res.status(200).end();
     return;
   }
@@ -35,6 +36,9 @@ export default async function handler(
   });
 
   try {
+    const limitResult = await checkLimitAndMaybeRespond(req, res, 'grammar');
+    if (!limitResult) return;
+
     const { text }: GrammarRequest = req.body;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
@@ -54,6 +58,7 @@ export default async function handler(
     }
 
     const result = await checkGrammarWithOpenAI(text);
+    await recordUsage(limitResult.userId, limitResult.anonymousId, 'grammar');
     res.status(200).json(result);
   } catch (error) {
     console.error('API Error:', error);
