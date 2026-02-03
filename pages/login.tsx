@@ -4,34 +4,64 @@ import { useRouter } from 'next/router';
 import { useState, useEffect } from 'react';
 import { createSupabaseBrowser } from '../lib/supabase-browser';
 
+function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`animate-pulse rounded-lg bg-gray-200 ${className}`} aria-hidden />;
+}
+
 const Login: NextPage = () => {
   const router = useRouter();
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
+  const [sessionChecking, setSessionChecking] = useState(true);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
   useEffect(() => {
     const supabase = createSupabaseBrowser();
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace('/connect-extension');
+      if (session) router.replace('/dashboard');
+      setSessionChecking(false);
     });
   }, [router]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setMessage('');
     setLoading(true);
     try {
       const supabase = createSupabaseBrowser();
-      const { error: err } = await supabase.auth.signInWithPassword({ email, password });
+      const { error: err } = await supabase.auth.signInWithOtp({
+        email: email.trim(),
+        options: { shouldCreateUser: true },
+      });
       if (err) throw err;
-      router.push('/connect-extension');
+      setMessage('We sent a 6-digit code to your email.');
+      setStep('code');
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Login failed.');
+      setError(err instanceof Error ? err.message : 'Could not send code.');
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
+    try {
+      const supabase = createSupabaseBrowser();
+      const { error: err } = await supabase.auth.verifyOtp({
+        email: email.trim(),
+        token: code.trim(),
+        type: 'email',
+      });
+      if (err) throw err;
+      router.push('/dashboard');
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Invalid or expired code.');
       setLoading(false);
     }
   };
@@ -52,6 +82,38 @@ const Login: NextPage = () => {
       setLoading(false);
     }
   };
+
+  const backToEmail = () => {
+    setStep('email');
+    setCode('');
+    setError('');
+    setMessage('');
+  };
+
+  if (sessionChecking) {
+    return (
+      <>
+        <Head>
+          <title>Log in – Rewordly</title>
+        </Head>
+        <div className="min-h-screen bg-[#f5f5f5] flex items-center justify-center p-4">
+          <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-lg overflow-hidden">
+            <div className="bg-[#1a1a1a] text-white py-8 px-6 text-center">
+              <Skeleton className="h-8 w-32 mx-auto" />
+              <Skeleton className="h-4 w-48 mx-auto mt-2" />
+            </div>
+            <div className="p-6 space-y-3">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-px w-full" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -91,58 +153,58 @@ const Login: NextPage = () => {
               <span className="text-xs text-gray-500">or</span>
               <span className="flex-1 h-px bg-gray-200" />
             </div>
-            <form onSubmit={handleEmailLogin} className="space-y-3">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Email"
-                required
-                className="w-full py-3 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent outline-none"
-              />
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Password"
-                required
-                className="w-full py-3 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent outline-none"
-              />
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 px-4 rounded-xl bg-[#1a1a1a] text-white font-medium hover:bg-[#2d2d2d] disabled:opacity-50"
-              >
-                Log in
-              </button>
-            </form>
-            <p className="mt-4 text-center text-sm text-gray-500">
-              Don&apos;t have an account?{' '}
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!email || !password) {
-                    setError('Enter email and password to sign up.');
-                    return;
-                  }
-                  setError('');
-                  setLoading(true);
-                  try {
-                    const supabase = createSupabaseBrowser();
-                    const { error: err } = await supabase.auth.signUp({ email, password });
-                    if (err) throw err;
-                    setMessage('Check your email to confirm your account.');
-                  } catch (err: unknown) {
-                    setError(err instanceof Error ? err.message : 'Sign up failed.');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                className="text-[#1a1a1a] font-medium underline"
-              >
-                Sign up
-              </button>
-            </p>
+
+            {step === 'email' ? (
+              <form onSubmit={handleSendCode} className="space-y-3">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  required
+                  className="w-full py-3 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 px-4 rounded-xl bg-[#1a1a1a] text-white font-medium hover:bg-[#2d2d2d] disabled:opacity-50"
+                >
+                  {loading ? 'Sending...' : 'Send code'}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCode} className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  Enter the 6-digit code sent to <strong className="text-gray-800">{email}</strong>
+                </p>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                  placeholder="000000"
+                  required
+                  className="w-full py-3 px-4 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#1a1a1a] focus:border-transparent outline-none text-center text-lg tracking-widest"
+                />
+                <button
+                  type="submit"
+                  disabled={loading || code.length !== 6}
+                  className="w-full py-3 px-4 rounded-xl bg-[#1a1a1a] text-white font-medium hover:bg-[#2d2d2d] disabled:opacity-50"
+                >
+                  {loading ? 'Verifying...' : 'Verify and log in'}
+                </button>
+                <button
+                  type="button"
+                  onClick={backToEmail}
+                  className="w-full text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Use a different email
+                </button>
+              </form>
+            )}
+
           </div>
         </div>
       </div>

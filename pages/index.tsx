@@ -1,7 +1,14 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import dynamic from "next/dynamic";
 import { useState } from "react";
+
+// Client-only: upgrades nav auth link to "Dashboard" when logged in; does not block first paint
+const NavAuthLinks = dynamic(
+  () => import("../components/NavAuthLinks").then((m) => m.default),
+  { ssr: false }
+);
 
 // SVG Icons
 const SparklesIcon = ({ size = 24 }: { size?: number }) => (
@@ -535,6 +542,31 @@ const Home: NextPage = () => {
 
         .nav-link:hover {
           color: #0a0a0a;
+        }
+
+        .nav-auth-slot {
+          min-width: 7rem;
+          display: inline-block;
+        }
+
+        .nav-auth-btn {
+          display: inline-block;
+          padding: 12px 28px;
+          background: #ffffff;
+          color: #0a0a0a;
+          border: 2px solid #e5e5e5;
+          border-radius: 50px;
+          font-weight: 600;
+          font-size: 0.95rem;
+          text-decoration: none;
+          transition: all 0.3s;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .nav-auth-btn:hover {
+          transform: translateY(-2px);
+          border-color: #d4d4d4;
+          box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
         }
 
         .nav-cta {
@@ -1779,11 +1811,17 @@ const Home: NextPage = () => {
               Features
             </a>
             <a href="#demo" className="nav-link">
-              Demo
+              How it works
             </a>
             <a href="#testimonials" className="nav-link">
               Reviews
             </a>
+            <span className="nav-auth-slot">
+              <a href="/login" className="nav-auth-btn" id="nav-auth-link">
+                Log in
+              </a>
+              <NavAuthLinks />
+            </span>
             <a
               href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp"
               target="_blank"
@@ -1849,9 +1887,9 @@ const Home: NextPage = () => {
                     stroke="currentColor"
                     strokeWidth="2"
                   >
-                    <polygon points="5 3 19 12 5 21 5 3" />
+                    <path d="M12 5v14M5 12l7 7 7-7" />
                   </svg>
-                  Watch Demo
+                  See how it works
                 </a>
               </div>
               <div className="hero-stats">
@@ -2037,11 +2075,11 @@ const Home: NextPage = () => {
           </div>
         </section>
 
-        {/* Demo Section */}
+        {/* How it works Section */}
         <section className="demo-section" id="demo">
           <div className="demo-container">
             <div className="section-header">
-              <span className="section-label">See it in action</span>
+              <span className="section-label">How it works</span>
               <h2 className="section-title">How Rewordly Works</h2>
               <p className="section-subtitle">
                 Select text, click the Rewordly button, and get instant

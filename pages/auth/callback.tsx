@@ -16,7 +16,7 @@ const AuthCallback: NextPage = () => {
       }
       if (session) {
         setStatus('ok');
-        router.replace('/connect-extension');
+        router.replace('/dashboard');
       } else {
         setStatus('error');
       }
@@ -25,8 +25,17 @@ const AuthCallback: NextPage = () => {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5]">
-        <p className="text-gray-600">Completing sign in...</p>
+      <div className="min-h-screen flex items-center justify-center bg-[#f5f5f5] p-4">
+        <div className="w-full max-w-[400px] bg-white rounded-2xl shadow-lg overflow-hidden">
+          <div className="bg-[#1a1a1a] text-white py-8 px-6">
+            <div className="h-8 w-32 mx-auto animate-pulse rounded-lg bg-white/20" />
+            <div className="h-4 w-48 mx-auto mt-2 animate-pulse rounded-lg bg-white/20" />
+          </div>
+          <div className="p-6 space-y-3">
+            <div className="h-4 w-full animate-pulse rounded-lg bg-gray-200" />
+            <div className="h-4 w-48 animate-pulse rounded-lg bg-gray-200" />
+          </div>
+        </div>
       </div>
     );
   }

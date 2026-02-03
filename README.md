@@ -28,6 +28,8 @@ A Next.js backend API for the Rewordly Chrome Extension that uses OpenAI GPT to 
    OPENAI_API_KEY=your-actual-openai-api-key-here
    ```
 
+   **Supabase Auth (email OTP):** Login uses email + 6-digit code (or Google). New users are created automatically when they use the magic link flow. In Supabase Dashboard go to **Authentication → Email Templates**, edit the **Magic Link** template and use `{{ .Token }}` in the body (e.g. "Your code: {{ .Token }}") so users receive a code instead of a link.
+
 3. **Development Server**
    ```bash
    npm run dev
