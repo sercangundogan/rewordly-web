@@ -2328,6 +2328,18 @@ const Home: NextPage = () => {
           <div className="footer-container">
             <div className="footer-logo">Rewordly</div>
             <div className="footer-links">
+              <a href="/privacy" className="footer-link">
+                Privacy Policy
+              </a>
+              <a href="/terms" className="footer-link">
+                Terms of Service
+              </a>
+              <a href="/cookies" className="footer-link">
+                Cookie Policy
+              </a>
+              <a href="/legal" className="footer-link">
+                Legal Notice
+              </a>
               <a
                 href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp"
                 target="_blank"
