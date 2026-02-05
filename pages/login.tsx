@@ -126,6 +126,7 @@ const Login: NextPage = () => {
           <div className="bg-[#1a1a1a] text-white py-8 px-6 text-center">
             <h1 className="text-2xl font-bold">Rewordly</h1>
             <p className="text-sm opacity-90 mt-1">Log in for more daily uses</p>
+            <p className="text-xs opacity-75 mt-1">Payment plans coming soon. Unlimited daily use will be available.</p>
           </div>
           <div className="p-6">
             {error && (

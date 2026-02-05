@@ -2065,10 +2065,11 @@ const Home: NextPage = () => {
                 <div className="feature-icon-wrapper feature-icon-6">
                   <MoneyBagIcon size={32} />
                 </div>
-                <h3>100% Free</h3>
+                <h3>Free to use</h3>
                 <p>
-                  No hidden fees, no premium tiers. Full features available to
-                  everyone, forever.
+                  Daily limits for everyone. Payment plans coming soon—unlimited
+                  daily use will be available. Until then, email us to request
+                  free additional limits.
                 </p>
               </div>
             </div>

@@ -32,7 +32,7 @@ export async function checkLimitAndMaybeRespond(
       message:
         tier === 'anonymous'
           ? 'Daily limit reached. Log in for more uses.'
-          : 'Daily limit reached. Upgrade to Pro for unlimited use.',
+          : 'Your daily limit has been reached. Until paid plans are available, you can email sercangundogan35@gmail.com to request free additional limits.',
       requireLogin: info.requireLogin,
       requirePayment: info.requirePayment,
       rewriteUsed: usage.rewrite,

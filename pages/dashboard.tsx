@@ -203,7 +203,7 @@ const Dashboard: NextPage = () => {
                   </div>
                   {!isPro && (
                     <p className="text-xs text-gray-500 mt-3">
-                      Go Pro for unlimited usage and access to all features.
+                      Payment plans coming soon. Until then, you can get unlimited daily use—or email sercangundogan35@gmail.com to request free limits.
                     </p>
                   )}
                 </>
@@ -211,18 +211,17 @@ const Dashboard: NextPage = () => {
             </div>
 
             {!usageLoading && !isPro && (
-              <button
-                type="button"
-                onClick={startUpgrade}
-                disabled={upgradeLoading}
-                className="w-full py-3 px-4 rounded-xl bg-[#2d4a3e] text-white font-medium hover:bg-[#1e3d32] disabled:opacity-50 transition-colors"
-              >
-                {upgradeLoading ? 'Opening...' : 'Upgrade to Pro'}
-              </button>
+              <p className="text-sm text-gray-500 mb-2">
+                Payment plans coming soon. For free additional limits until then, email{' '}
+                <a href="mailto:sercangundogan35@gmail.com" className="text-[#2d4a3e] font-medium hover:underline">
+                  sercangundogan35@gmail.com
+                </a>
+                .
+              </p>
             )}
 
             {usageLoading && !usage?.isSubscribed && (
-              <Skeleton className="h-12 w-full rounded-xl mb-6" />
+              <Skeleton className="h-4 w-full rounded mb-2" />
             )}
 
             <div className="mt-6 flex flex-col items-center gap-2">

@@ -13,8 +13,8 @@ export const LIMITS = {
   },
   /** Logged-in free users: per day */
   free: {
-    rewrite: 25,
-    grammar: 25,
+    rewrite: 10,
+    grammar: 10,
   },
   /** Pro subscribers: no limit (use Infinity or skip check) */
   pro: {
