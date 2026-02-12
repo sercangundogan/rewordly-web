@@ -71,10 +71,14 @@ const Login: NextPage = () => {
     setLoading(true);
     try {
       const supabase = createSupabaseBrowser();
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      // Use explicit production URL when set (avoids reverse proxy / wrong origin); else current origin
+      const baseUrl =
+        typeof window !== 'undefined'
+          ? (process.env.NEXT_PUBLIC_APP_URL || window.location.origin)
+          : process.env.NEXT_PUBLIC_APP_URL || '';
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: `${baseUrl}/auth/callback` },
+        options: { redirectTo: `${baseUrl.replace(/\/$/, '')}/auth/callback` },
       });
       if (err) throw err;
     } catch (err: unknown) {
