@@ -1,14 +1,7 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import dynamic from "next/dynamic";
-import { useState } from "react";
-
-// Client-only: upgrades nav auth link to "Dashboard" when logged in; does not block first paint
-const NavAuthLinks = dynamic(
-  () => import("../components/NavAuthLinks").then((m) => m.default),
-  { ssr: false }
-);
+import Header from "../components/Header";
 
 // SVG Icons
 const SparklesIcon = ({ size = 24 }: { size?: number }) => (
@@ -411,8 +404,6 @@ const ChromeIcon = ({ size = 24, color = "#0a0a0a" }: { size?: number, color?: s
 );
 
 const Home: NextPage = () => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   return (
     <>
       <Head>
@@ -501,97 +492,6 @@ const Home: NextPage = () => {
           line-height: 1.6;
           overflow-x: hidden;
           background: #ffffff;
-        }
-
-        /* Navbar */
-        .navbar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          right: 0;
-          z-index: 1000;
-          padding: 16px 40px;
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          background: rgba(255, 255, 255, 0.98);
-          backdrop-filter: blur(20px);
-          border-bottom: 1px solid #e5e5e5;
-        }
-
-        .nav-logo {
-          font-size: 1.5rem;
-          font-weight: 800;
-          color: #0a0a0a;
-          text-decoration: none;
-        }
-
-        .nav-links {
-          display: flex;
-          align-items: center;
-          gap: 32px;
-        }
-
-        .nav-link {
-          color: #525252;
-          text-decoration: none;
-          font-weight: 500;
-          font-size: 0.95rem;
-          transition: color 0.2s;
-        }
-
-        .nav-link:hover {
-          color: #0a0a0a;
-        }
-
-        .nav-auth-slot {
-          min-width: 7rem;
-          display: inline-block;
-        }
-
-        .nav-auth-btn {
-          display: inline-block;
-          padding: 12px 28px;
-          background: #ffffff;
-          color: #0a0a0a;
-          border: 2px solid #e5e5e5;
-          border-radius: 50px;
-          font-weight: 600;
-          font-size: 0.95rem;
-          text-decoration: none;
-          transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-        }
-
-        .nav-auth-btn:hover {
-          transform: translateY(-2px);
-          border-color: #d4d4d4;
-          box-shadow: 0 6px 25px rgba(0, 0, 0, 0.12);
-        }
-
-        .nav-cta {
-          padding: 12px 28px;
-          background: #0a0a0a;
-          color: #ffffff;
-          border-radius: 50px;
-          font-weight: 600;
-          text-decoration: none;
-          transition: all 0.3s;
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
-        }
-
-        .nav-cta:hover {
-          transform: translateY(-2px);
-          background: #262626;
-          box-shadow: 0 6px 25px rgba(0, 0, 0, 0.2);
-        }
-
-        .mobile-menu-btn {
-          display: none;
-          background: none;
-          border: none;
-          cursor: pointer;
-          padding: 8px;
         }
 
         /* Hero Section */
@@ -1734,18 +1634,6 @@ const Home: NextPage = () => {
         }
 
         @media (max-width: 768px) {
-          .navbar {
-            padding: 12px 20px;
-          }
-
-          .nav-links {
-            display: none;
-          }
-
-          .mobile-menu-btn {
-            display: block;
-          }
-
           .hero {
             min-height: 100vh;
             padding: 100px 20px 40px;
@@ -1801,52 +1689,7 @@ const Home: NextPage = () => {
       `}</style>
 
       <main>
-        {/* Navbar */}
-        <nav className="navbar">
-          <a href="/" className="nav-logo">
-            Rewordly
-          </a>
-          <div className="nav-links">
-            <a href="#features" className="nav-link">
-              Features
-            </a>
-            <a href="#demo" className="nav-link">
-              How it works
-            </a>
-            <a href="#testimonials" className="nav-link">
-              Reviews
-            </a>
-            <span className="nav-auth-slot">
-              <a href="/login" className="nav-auth-btn" id="nav-auth-link">
-                Log in
-              </a>
-              <NavAuthLinks />
-            </span>
-            <a
-              href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="nav-cta"
-            >
-              Add to Chrome
-            </a>
-          </div>
-          <button
-            className="mobile-menu-btn"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="#0a0a0a"
-              strokeWidth="2"
-            >
-              <path d="M3 12h18M3 6h18M3 18h18" />
-            </svg>
-          </button>
-        </nav>
+        <Header showAuthSlot />
 
         {/* Hero Section */}
         <section className="hero">
@@ -2328,6 +2171,9 @@ const Home: NextPage = () => {
           <div className="footer-container">
             <div className="footer-logo">Rewordly</div>
             <div className="footer-links">
+              <a href="/blog" className="footer-link">
+                Blog
+              </a>
               <a href="/privacy" className="footer-link">
                 Privacy Policy
               </a>
