@@ -15,8 +15,10 @@ interface BlogPostPageProps {
 const BlogPostPage: NextPage<BlogPostPageProps> = ({ post }) => {
   const canonical = `${BASE_URL}/blog/${post.slug}`;
   const ogImage = post.image
-    ? (post.image.startsWith("http") ? post.image : `${BASE_URL}${post.image}`)
-    : undefined;
+  ? (post.image.startsWith("http")
+      ? post.image
+      : `${BASE_URL}${post.image}`)
+  : `${BASE_URL}/og-image.png`;
 
   return (
     <>
@@ -128,6 +130,12 @@ const BlogPostPage: NextPage<BlogPostPageProps> = ({ post }) => {
         .blog-article-body :global(ol) {
           margin-bottom: 1.2em;
           padding-left: 1.5em;
+        }
+        .blog-article-body :global(ul) {
+          list-style-type: disc;
+        }
+        .blog-article-body :global(ol) {
+          list-style-type: decimal;
         }
         .blog-article-body :global(li) {
           margin-bottom: 0.4em;
