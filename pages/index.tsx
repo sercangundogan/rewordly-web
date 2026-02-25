@@ -432,6 +432,7 @@ const Home: NextPage = () => {
           property="og:description"
           content="AI-powered Chrome extension for text rewriting and grammar check. 100% free, no sign-up required."
         />
+        <meta property="og:image" content="/og-image.png" />
 
         {/* Twitter */}
         <meta property="twitter:card" content="summary_large_image" />
@@ -447,6 +448,7 @@ const Home: NextPage = () => {
           property="twitter:description"
           content="AI-powered Chrome extension for text rewriting and grammar check. 100% free, no sign-up required."
         />
+        <meta property="twitter:image" content="/og-image.png" />
 
         {/* Favicons */}
         <link rel="icon" type="image/x-icon" href="/favicon.ico" />

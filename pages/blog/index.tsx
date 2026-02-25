@@ -29,6 +29,7 @@ const BlogIndex: NextPage<BlogIndexProps> = ({ posts }) => {
           property="og:description"
           content="Writing tips and Rewordly updates."
         />
+        <meta property="og:image" content="/og-image.png" />
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="twitter:url" content={`${BASE_URL}/blog`} />
         <meta property="twitter:title" content="Blog | Rewordly" />
@@ -36,6 +37,7 @@ const BlogIndex: NextPage<BlogIndexProps> = ({ posts }) => {
           property="twitter:description"
           content="Writing tips and Rewordly updates."
         />
+        <meta property="twitter:image" content="/og-image.png" />
         <meta name="theme-color" content="#0a0a0a" />
       </Head>
 
