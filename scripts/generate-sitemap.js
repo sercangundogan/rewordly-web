@@ -73,4 +73,20 @@ ${urls.join("\n")}
   console.log("[sitemap] Wrote %s (%d URLs)", outPath, urls.length);
 }
 
+function generateRobots() {
+  const lines = [
+    "User-agent: *",
+    "Allow: /",
+    "Disallow: /api/",
+    "Disallow: /auth/",
+    "",
+    `Sitemap: ${BASE_URL}/sitemap.xml`,
+  ];
+  const outPath = path.join(process.cwd(), "public", "robots.txt");
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, lines.join("\n"), "utf8");
+  console.log("[robots] Wrote %s", outPath);
+}
+
 generateSitemap();
+generateRobots();
