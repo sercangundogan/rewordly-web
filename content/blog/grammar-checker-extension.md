@@ -91,6 +91,6 @@ A grammar checker extension is one of the simplest ways to improve your everyday
 
 Improve any selected text instantly — rewrite sentences, fix grammar, and enhance clarity without leaving your browser.
 
-No sign-up required. Works directly on the pages you already use.
+Free to use; sign in for more daily usage. Works directly on the pages you already use.
 
 👉 **[Install Rewordly – Free Chrome Extension](https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp)**
