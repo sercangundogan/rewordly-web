@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { rewriteText, RewriteRequest, RewriteResponse, ApiError } from '../../lib/openai';
+import { rewriteText, RewriteRequest, RewriteResponse, ApiError, RewriteTone } from '../../lib/openai';
 import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
 
 const corsHeaders = {
@@ -41,7 +41,7 @@ export default async function handler(
     const limitResult = await checkLimitAndMaybeRespond(req, res, 'rewrite');
     if (!limitResult) return;
 
-    const { text }: RewriteRequest = req.body;
+    const { text, tone }: RewriteRequest = req.body;
 
     if (!text || typeof text !== 'string' || text.trim().length === 0) {
       res.status(400).json({
@@ -51,7 +51,10 @@ export default async function handler(
       return;
     }
 
-    const result = await rewriteText(text);
+    const validTones: RewriteTone[] = ['standard', 'formal', 'casual', 'concise', 'elaborate'];
+    const safeTone: RewriteTone = tone && validTones.includes(tone) ? tone : 'standard';
+
+    const result = await rewriteText(text, safeTone);
     await recordUsage(limitResult.userId, limitResult.anonymousId, 'rewrite');
     res.status(200).json(result);
   } catch (error) {

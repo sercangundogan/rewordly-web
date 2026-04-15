@@ -5,8 +5,11 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
+export type RewriteTone = 'standard' | 'formal' | 'casual' | 'concise' | 'elaborate';
+
 export interface RewriteRequest {
   text: string;
+  tone?: RewriteTone;
 }
 
 export interface RewriteResponse {
@@ -18,12 +21,34 @@ export interface ApiError {
   message: string;
 }
 
+const TONE_SYSTEM_PROMPTS: Record<RewriteTone, string> = {
+  standard:
+    'You are a helpful writing assistant. Rewrite the text to improve grammar, clarity, and fluency while preserving the original meaning and tone. Return only the rewritten text without any commentary or formatting.',
+  formal:
+    'You are a professional writing assistant. Rewrite the text in a formal, professional tone. Use precise language, avoid contractions, and structure sentences clearly. Preserve the original meaning. Return only the rewritten text without any commentary or formatting.',
+  casual:
+    'You are a friendly writing assistant. Rewrite the text in a casual, conversational tone. Use natural language and contractions where appropriate. Keep it warm and approachable while preserving the original meaning. Return only the rewritten text without any commentary or formatting.',
+  concise:
+    'You are a concise writing assistant. Rewrite the text to be shorter and more direct. Remove unnecessary words, filler phrases, and redundancy while keeping all key information intact. Return only the rewritten text without any commentary or formatting.',
+  elaborate:
+    'You are an expressive writing assistant. Rewrite the text to be more detailed and rich. Expand on the ideas with stronger vocabulary and additional context while staying true to the original meaning. Return only the rewritten text without any commentary or formatting.',
+};
+
+const TONE_USER_PROMPTS: Record<RewriteTone, string> = {
+  standard: 'Rewrite the following text to improve grammar, clarity, and fluency:',
+  formal:   'Rewrite the following text in a formal, professional tone:',
+  casual:   'Rewrite the following text in a casual, conversational tone:',
+  concise:  'Rewrite the following text to be more concise and direct:',
+  elaborate: 'Rewrite the following text to be more detailed and elaborate:',
+};
+
 /**
  * Rewrites text using OpenAI GPT API
  * @param text - The text to rewrite
+ * @param tone - Optional tone style (defaults to 'standard')
  * @returns Promise<RewriteResponse> - The rewritten text
  */
-export async function rewriteText(text: string): Promise<RewriteResponse> {
+export async function rewriteText(text: string, tone: RewriteTone = 'standard'): Promise<RewriteResponse> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
@@ -32,21 +57,23 @@ export async function rewriteText(text: string): Promise<RewriteResponse> {
     throw new Error('Text is required and cannot be empty');
   }
 
+  const safeTone: RewriteTone = TONE_SYSTEM_PROMPTS[tone] ? tone : 'standard';
+
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
-          content: 'You are a helpful assistant that rewrites text to improve grammar, clarity, and fluency while preserving the original meaning. Return only the rewritten text without any additional commentary or formatting.'
+          content: TONE_SYSTEM_PROMPTS[safeTone],
         },
         {
           role: 'user',
-          content: `Please rewrite the following text to improve grammar, clarity, and fluency while preserving the original meaning:\n\n${text}`
+          content: `${TONE_USER_PROMPTS[safeTone]}\n\n${text}`,
         }
       ],
       max_tokens: 1000,
-      temperature: 0.7,
+      temperature: safeTone === 'concise' ? 0.5 : 0.7,
     });
 
     const rewritten = completion.choices[0]?.message?.content;
@@ -88,7 +115,7 @@ export async function correctGrammar(text: string): Promise<GrammarResponse> {
 
   try {
     const completion = await openai.chat.completions.create({
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
