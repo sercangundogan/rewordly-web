@@ -65,7 +65,13 @@ const Dashboard: NextPage = () => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${session.access_token}`,
       },
-      body: JSON.stringify({ access_token: session.access_token }),
+      body: JSON.stringify({
+        access_token:     session.access_token,
+        refresh_token:    session.refresh_token ?? undefined,
+        token_expires_at: session.expires_at
+          ? Math.floor(new Date(session.expires_at).getTime() / 1000)
+          : undefined,
+      }),
     })
       .then((r) => r.json())
       .then((data) => {

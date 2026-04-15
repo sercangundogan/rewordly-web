@@ -46,7 +46,7 @@ export default async function handler(
       return;
     }
 
-    const body = req.body as { access_token?: string };
+    const body = req.body as { access_token?: string; refresh_token?: string; token_expires_at?: number };
     const accessToken = body?.access_token;
     if (!accessToken || typeof accessToken !== 'string') {
       res.status(400).json({ error: 'Bad Request', message: 'access_token required.' });
@@ -64,8 +64,10 @@ export default async function handler(
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     await supabase.from('connection_codes').insert({
       code,
-      access_token: accessToken,
-      expires_at: expiresAt,
+      access_token:    accessToken,
+      refresh_token:   body.refresh_token ?? null,
+      token_expires_at: body.token_expires_at ?? null,
+      expires_at:      expiresAt,
     });
 
     res.status(200).json({ code, expires_at: expiresAt });

@@ -46,9 +46,15 @@ CREATE TABLE IF NOT EXISTS public.connection_codes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   code TEXT NOT NULL UNIQUE,
   access_token TEXT NOT NULL,
-  expires_at TIMESTAMPTZ NOT NULL,
+  refresh_token TEXT,
+  token_expires_at BIGINT,          -- Unix timestamp (seconds) of the access_token expiry
+  expires_at TIMESTAMPTZ NOT NULL,  -- When this connection code itself expires (5-min TTL)
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Migration: add columns if table already exists
+ALTER TABLE public.connection_codes ADD COLUMN IF NOT EXISTS refresh_token TEXT;
+ALTER TABLE public.connection_codes ADD COLUMN IF NOT EXISTS token_expires_at BIGINT;
 
 CREATE INDEX IF NOT EXISTS idx_connection_codes_code ON public.connection_codes (code);
 CREATE INDEX IF NOT EXISTS idx_connection_codes_expires ON public.connection_codes (expires_at);

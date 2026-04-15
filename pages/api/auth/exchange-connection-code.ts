@@ -39,7 +39,7 @@ export default async function handler(
     const supabase = getSupabaseAdmin();
     const { data: row, error: fetchError } = await supabase
       .from('connection_codes')
-      .select('access_token, expires_at')
+      .select('access_token, refresh_token, expires_at, token_expires_at')
       .eq('code', code)
       .limit(1)
       .maybeSingle();
@@ -49,17 +49,23 @@ export default async function handler(
       return;
     }
 
-    const expired = new Date((row as { expires_at: string }).expires_at) <= new Date();
+    type CodeRow = { access_token: string; refresh_token?: string; expires_at: string; token_expires_at?: number };
+    const typedRow = row as CodeRow;
+
+    const expired = new Date(typedRow.expires_at) <= new Date();
     if (expired) {
       await supabase.from('connection_codes').delete().eq('code', code);
       res.status(404).json({ error: 'Invalid code', message: 'Code expired.' });
       return;
     }
 
-    const accessToken = (row as { access_token: string }).access_token;
     await supabase.from('connection_codes').delete().eq('code', code);
 
-    res.status(200).json({ access_token: accessToken });
+    res.status(200).json({
+      access_token:  typedRow.access_token,
+      refresh_token: typedRow.refresh_token ?? null,
+      expires_at:    typedRow.token_expires_at ?? null,
+    });
   } catch (e) {
     console.error('exchange-connection-code error:', e);
     res.setHeader('Access-Control-Allow-Origin', '*');
