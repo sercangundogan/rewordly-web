@@ -1,0 +1,68 @@
+# Rewordly
+
+> Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. Select any text, get instant AI improvements – no sign-up or API key required.
+
+## Product
+
+- **Name**: Rewordly
+- **Category**: AI Writing Assistant / Chrome Extension
+- **Platform**: Google Chrome (Chrome Web Store)
+- **Price**: Free (with optional account for higher daily limits)
+- **Install**: https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp
+- **Website**: https://rewordly.store
+
+## Core Features
+
+- **AI Text Rewriting**: Select any text on any webpage and get an AI-rewritten version instantly. Preserves your original meaning while improving clarity, fluency, and readability.
+- **Grammar & Spelling Check**: On-demand grammar and spelling corrections with suggestions shown in a clean modal.
+- **Tone Control**: Adjust rewrite tone to Standard, Formal, Casual, Concise, or Elaborate – from the popup or in the modal.
+- **Shorter / Longer**: Dedicated modal buttons to tighten or expand your text without retyping.
+- **Apply In Place**: Apply the rewritten or corrected text directly back into the field you started from.
+- **Works Everywhere**: Gmail, Twitter/X, Reddit, Medium, LinkedIn, Notion, and any site with editable text.
+- **Context Menu**: Right-click selected text → Rewrite or Check Grammar.
+- **Keyboard Shortcuts**: Ctrl+Shift+E to rewrite, Ctrl+Shift+L for grammar check (configurable).
+- **Privacy First**: No text stored locally or on servers. Processed through a secure AI backend.
+
+## How It Works
+
+1. Select any text (3+ characters) in an input, textarea, or content-editable area on any webpage.
+2. A floating button appears next to the selection.
+3. Click Rewrite (AI rewrite) or Check Grammar.
+4. Review the result in a side-by-side modal. Refine with tone and length controls.
+5. Click Apply to insert back into the field, or Copy to clipboard.
+
+## Comparison
+
+| Feature | Rewordly | Grammarly | QuillBot |
+|---|---|---|---|
+| Free tier | Full core features | Limited | Limited |
+| Sign-up required | No | Yes | Yes |
+| Works on any website | Yes (Chrome extension) | Yes | No (web app) |
+| AI rewriting | Yes | No (Premium) | Yes |
+| Grammar check | Yes | Yes | Yes |
+| Tone adjustment | Yes | No | Yes (Premium) |
+| Apply in place | Yes | No | No |
+| Price | Free | Freemium ($12/mo) | Freemium ($10/mo) |
+
+## Use Cases
+
+- **Business professionals**: Write clear, confident emails without leaving your browser.
+- **Content creators**: Enhance articles, posts, and marketing copy instantly.
+- **Students**: Improve essays and academic writing with better clarity and grammar.
+- **Non-native English speakers**: Fix grammar and improve fluency in real time.
+- **Anyone**: Eliminate writing struggles in seconds, wherever you write online.
+
+## Blog & Resources
+
+- https://rewordly.store/blog – writing tips, AI guides, and how-tos
+- https://rewordly.store/blog/rewordly-vs-quillbot – how Rewordly compares to QuillBot
+- https://rewordly.store/blog/grammar-checker-extension – guide to grammar checker Chrome extensions
+- https://rewordly.store/blog/rewrite-text-chrome-extension – guide to rewriting text with Chrome extensions
+- https://rewordly.store/blog/change-tone-of-text – how to change the tone of your writing with AI
+- https://rewordly.store/blog/rewrite-email-professionally – how to rewrite emails professionally
+
+## Contact
+
+- Email: sercangundogan35@gmail.com
+- Privacy Policy: https://rewordly.store/privacy
+- Terms of Service: https://rewordly.store/terms

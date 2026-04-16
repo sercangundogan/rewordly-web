@@ -3,6 +3,7 @@ const path = require("path");
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://rewordly.store";
 
+/** Paths to include in sitemap (no auth / app-shell URLs — those are noindex targets). */
 const STATIC_PATHS = [
   "",
   "/blog",
@@ -10,8 +11,6 @@ const STATIC_PATHS = [
   "/terms",
   "/legal",
   "/privacy",
-  "/login",
-  "/dashboard",
 ];
 
 function getBlogSlugs() {
@@ -50,14 +49,26 @@ function generateSitemap() {
 
   for (const p of STATIC_PATHS) {
     const loc = p === "" ? BASE_URL : `${BASE_URL}${p}`;
-    const priority = p === "" ? "1.0" : p === "/blog" ? "0.9" : "0.8";
-    urls.push(urlElement(loc, today, "weekly", priority));
+    let priority = "0.8";
+    let changefreq = "weekly";
+    if (p === "") {
+      priority = "1.0";
+    } else if (p === "/blog") {
+      priority = "0.9";
+    } else if (p === "/privacy" || p === "/terms") {
+      priority = "0.4";
+      changefreq = "yearly";
+    } else if (p === "/cookies" || p === "/legal") {
+      priority = "0.3";
+      changefreq = "yearly";
+    }
+    urls.push(urlElement(loc, today, changefreq, priority));
   }
 
   const slugs = getBlogSlugs();
   for (const slug of slugs) {
     urls.push(
-      urlElement(`${BASE_URL}/blog/${slug}`, today, "monthly", "0.7")
+      urlElement(`${BASE_URL}/blog/${slug}`, today, "monthly", "0.8")
     );
   }
 
@@ -79,6 +90,8 @@ function generateRobots() {
     "Allow: /",
     "Disallow: /api/",
     "Disallow: /auth/",
+    "Disallow: /login",
+    "Disallow: /dashboard",
     "",
     `Sitemap: ${BASE_URL}/sitemap.xml`,
   ];

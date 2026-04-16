@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /api/
 Disallow: /auth/
+Disallow: /login
+Disallow: /dashboard
 
 Sitemap: https://rewordly.store/sitemap.xml
