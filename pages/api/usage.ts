@@ -1,7 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthFromRequest } from '../../lib/auth';
 import { getUsage } from '../../lib/usage';
-import { LIMITS, type LimitTier } from '../../lib/limits';
+import { getLimitsForUser, hasCustomUserLimits, type LimitTier } from '../../lib/limits';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,8 +10,12 @@ const corsHeaders = {
   'Content-Type': 'application/json',
 };
 
-function limitValue(tier: LimitTier, type: 'rewrite' | 'grammar'): number {
-  const l = LIMITS[tier][type];
+function limitValue(
+  tier: LimitTier,
+  type: 'rewrite' | 'grammar',
+  userId: string | null
+): number {
+  const l = getLimitsForUser(tier, userId)[type];
   return l === Infinity ? -1 : l;
 }
 
@@ -43,8 +47,8 @@ export default async function handler(
     const { userId, tier, email } = await getAuthFromRequest(auth, anonymousId);
     const usage = await getUsage(userId, anonymousId);
 
-    const rewriteLimit = limitValue(tier, 'rewrite');
-    const grammarLimit = limitValue(tier, 'grammar');
+    const rewriteLimit = limitValue(tier, 'rewrite', userId);
+    const grammarLimit = limitValue(tier, 'grammar', userId);
 
     const payload: Record<string, unknown> = {
       rewriteUsed: usage.rewrite,
@@ -53,7 +57,7 @@ export default async function handler(
       grammarLimit: grammarLimit === -1 ? null : grammarLimit,
       isSubscribed: tier === 'pro',
       requireLogin: tier === 'anonymous',
-      requirePayment: tier === 'free',
+      requirePayment: tier === 'free' && !hasCustomUserLimits(userId),
     };
     if (email) payload.user = { email };
     res.status(200).json(payload);

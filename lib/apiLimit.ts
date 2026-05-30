@@ -25,8 +25,8 @@ export async function checkLimitAndMaybeRespond(
   const { userId, tier } = await getAuthFromRequest(auth, anonymousId);
   const usage = await getUsage(userId, anonymousId);
 
-  if (!canUse(tier, type, usage)) {
-    const info = getLimitInfo(tier, type, usage);
+  if (!canUse(tier, type, usage, userId)) {
+    const info = getLimitInfo(tier, type, usage, userId);
     res.status(402).json({
       code: 'LIMIT_REACHED',
       message:

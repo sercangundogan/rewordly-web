@@ -1,5 +1,5 @@
 import { getSupabaseAdmin } from './supabase';
-import { LIMITS, type LimitTier } from './limits';
+import { getLimitsForUser, hasCustomUserLimits, type LimitTier } from './limits';
 
 const USAGE_TABLE = 'usage';
 
@@ -103,9 +103,10 @@ export async function incrementUsage(
 export function canUse(
   tier: LimitTier,
   type: 'rewrite' | 'grammar',
-  used: { rewrite: number; grammar: number }
+  used: { rewrite: number; grammar: number },
+  userId: string | null = null
 ): boolean {
-  const limits = LIMITS[tier];
+  const limits = getLimitsForUser(tier, userId);
   const limit = type === 'rewrite' ? limits.rewrite : limits.grammar;
   const current = type === 'rewrite' ? used.rewrite : used.grammar;
   return current < limit;
@@ -117,7 +118,8 @@ export function canUse(
 export function getLimitInfo(
   tier: LimitTier,
   type: 'rewrite' | 'grammar',
-  used: { rewrite: number; grammar: number }
+  used: { rewrite: number; grammar: number },
+  userId: string | null = null
 ): {
   used: number;
   limit: number;
@@ -125,7 +127,7 @@ export function getLimitInfo(
   requireLogin: boolean;
   requirePayment: boolean;
 } {
-  const limits = LIMITS[tier];
+  const limits = getLimitsForUser(tier, userId);
   const limit = type === 'rewrite' ? limits.rewrite : limits.grammar;
   const usedCount = type === 'rewrite' ? used.rewrite : used.grammar;
   const remaining = Math.max(0, limit === Infinity ? 999 : limit - usedCount);
@@ -134,6 +136,6 @@ export function getLimitInfo(
     limit: limit === Infinity ? -1 : limit,
     remaining: limit === Infinity ? -1 : remaining,
     requireLogin: tier === 'anonymous',
-    requirePayment: tier === 'free',
+    requirePayment: tier === 'free' && !hasCustomUserLimits(userId),
   };
 }
