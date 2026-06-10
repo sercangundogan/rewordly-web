@@ -496,7 +496,7 @@ const Home: NextPage = () => {
               "url": "https://rewordly.store",
               "downloadUrl": "https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp",
               "installUrl": "https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp",
-              "softwareVersion": "1.5.0",
+              "softwareVersion": "1.6.0",
               "offers": {
                 "@type": "Offer",
                 "price": "0",
