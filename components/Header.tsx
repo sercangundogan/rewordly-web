@@ -33,6 +33,9 @@ export default function Header({ showAuthSlot = false }: HeaderProps) {
       <Link href="/#testimonials" className="site-header-link" onClick={closeMenu}>
         Reviews
       </Link>
+      <Link href="/#pricing" className="site-header-link" onClick={closeMenu}>
+        Pricing
+      </Link>
       <Link href="/blog" className="site-header-link" onClick={closeMenu}>
         Blog
       </Link>
@@ -245,6 +248,9 @@ export default function Header({ showAuthSlot = false }: HeaderProps) {
         </Link>
         <Link href="/#testimonials" className="site-header-link" onClick={closeMenu}>
           Reviews
+        </Link>
+        <Link href="/#pricing" className="site-header-link" onClick={closeMenu}>
+          Pricing
         </Link>
         <Link href="/blog" className="site-header-link" onClick={closeMenu}>
           Blog
