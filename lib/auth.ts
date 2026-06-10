@@ -38,19 +38,56 @@ export async function getAuthFromRequest(
   }
 }
 
+export interface SubscriptionInfo {
+  isPro: boolean;
+  status: string | null;
+  plan: 'monthly' | 'yearly' | null;
+  currentPeriodEnd: string | null;
+  cancelAtPeriodEnd: boolean;
+}
+
 /**
- * Check if user has an active Pro subscription (LemonSqueezy).
+ * Fetch the user's Dodo Payments subscription and resolve Pro access.
+ * Pro = status 'active', or a cancelled subscription whose paid period
+ * hasn't ended yet (cancel at period end keeps access until then).
  */
-export async function checkSubscription(userId: string): Promise<boolean> {
+export async function getSubscriptionInfo(userId: string): Promise<SubscriptionInfo> {
+  const none: SubscriptionInfo = {
+    isPro: false,
+    status: null,
+    plan: null,
+    currentPeriodEnd: null,
+    cancelAtPeriodEnd: false,
+  };
+
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from('subscriptions')
-    .select('status')
+    .select('status, plan, current_period_end, cancel_at_period_end')
     .eq('user_id', userId)
-    .in('status', ['active', 'on_trial'])
-    .limit(1)
     .maybeSingle();
 
-  if (error || !data) return false;
-  return true;
+  if (error || !data) return none;
+
+  const periodEnd = data.current_period_end as string | null;
+  const periodActive = periodEnd ? new Date(periodEnd).getTime() > Date.now() : false;
+  const isPro =
+    data.status === 'active' ||
+    (data.status === 'cancelled' && periodActive);
+
+  return {
+    isPro,
+    status: data.status ?? null,
+    plan: (data.plan as 'monthly' | 'yearly' | null) ?? null,
+    currentPeriodEnd: periodEnd,
+    cancelAtPeriodEnd: data.cancel_at_period_end === true,
+  };
+}
+
+/**
+ * Check if user has an active Pro subscription (Dodo Payments).
+ */
+export async function checkSubscription(userId: string): Promise<boolean> {
+  const info = await getSubscriptionInfo(userId);
+  return info.isPro;
 }

@@ -1,6 +1,7 @@
 import { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useState } from "react";
 import Header from "../components/Header";
 
 // SVG Icons
@@ -404,6 +405,8 @@ const ChromeIcon = ({ size = 24, color = "#0a0a0a" }: { size?: number, color?: s
 );
 
 const Home: NextPage = () => {
+  const [pricingPlan, setPricingPlan] = useState<"monthly" | "yearly">("yearly");
+
   return (
     <>
       <Head>
@@ -1707,6 +1710,248 @@ const Home: NextPage = () => {
           margin: 0;
         }
 
+        /* Pricing Section */
+        .pricing-section {
+          padding: 100px 40px;
+          background: #ffffff;
+        }
+
+        .pricing-toggle {
+          display: inline-flex;
+          padding: 4px;
+          background: #f5f5f5;
+          border: 1px solid #e5e5e5;
+          border-radius: 50px;
+          margin-bottom: 48px;
+        }
+
+        .pricing-toggle button {
+          padding: 10px 24px;
+          border: none;
+          border-radius: 50px;
+          font-family: inherit;
+          font-size: 0.9rem;
+          font-weight: 600;
+          color: #737373;
+          background: transparent;
+          cursor: pointer;
+          transition: all 0.25s;
+        }
+
+        .pricing-toggle button.active {
+          background: #0a0a0a;
+          color: #ffffff;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        .pricing-toggle .save-pill {
+          margin-left: 6px;
+          padding: 2px 8px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 50px;
+          font-size: 0.7rem;
+          font-weight: 700;
+        }
+
+        .pricing-toggle button:not(.active) .save-pill {
+          background: #e5e5e5;
+          color: #525252;
+        }
+
+        .pricing-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 24px;
+          max-width: 820px;
+          margin: 0 auto;
+          align-items: stretch;
+        }
+
+        .pricing-card {
+          background: #ffffff;
+          border: 1px solid #e5e5e5;
+          border-radius: 24px;
+          padding: 36px 32px;
+          display: flex;
+          flex-direction: column;
+          transition: all 0.3s;
+        }
+
+        .pricing-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+        }
+
+        .pricing-card.featured {
+          background: #0a0a0a;
+          border-color: #0a0a0a;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .pricing-card.featured::before {
+          content: "";
+          position: absolute;
+          top: -50%;
+          left: -50%;
+          width: 200%;
+          height: 200%;
+          background: url('data:image/svg+xml,<svg width="60" height="60" xmlns="http://www.w3.org/2000/svg"><circle cx="30" cy="30" r="1.5" fill="rgba(255,255,255,0.06)"/></svg>');
+          pointer-events: none;
+        }
+
+        .pricing-plan-name {
+          font-size: 1rem;
+          font-weight: 700;
+          color: #0a0a0a;
+          margin-bottom: 4px;
+        }
+
+        .pricing-card.featured .pricing-plan-name {
+          color: #ffffff;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        }
+
+        .pricing-best-badge {
+          padding: 3px 10px;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          border-radius: 50px;
+          font-size: 0.65rem;
+          font-weight: 700;
+          letter-spacing: 0.5px;
+          text-transform: uppercase;
+        }
+
+        .pricing-plan-desc {
+          font-size: 0.875rem;
+          color: #737373;
+          margin-bottom: 24px;
+        }
+
+        .pricing-card.featured .pricing-plan-desc {
+          color: rgba(255, 255, 255, 0.65);
+        }
+
+        .pricing-amount {
+          display: flex;
+          align-items: baseline;
+          gap: 6px;
+          margin-bottom: 28px;
+        }
+
+        .pricing-price {
+          font-size: 3rem;
+          font-weight: 800;
+          color: #0a0a0a;
+          line-height: 1;
+        }
+
+        .pricing-card.featured .pricing-price {
+          color: #ffffff;
+        }
+
+        .pricing-period {
+          font-size: 0.95rem;
+          color: #737373;
+          font-weight: 500;
+        }
+
+        .pricing-card.featured .pricing-period {
+          color: rgba(255, 255, 255, 0.6);
+        }
+
+        .pricing-features {
+          list-style: none;
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          margin-bottom: 32px;
+          flex: 1;
+        }
+
+        .pricing-features li {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          font-size: 0.925rem;
+          color: #525252;
+        }
+
+        .pricing-card.featured .pricing-features li {
+          color: rgba(255, 255, 255, 0.85);
+        }
+
+        .pricing-check {
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          background: #f5f5f5;
+          border: 1px solid #e5e5e5;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+          font-size: 0.7rem;
+          color: #0a0a0a;
+          font-weight: 700;
+        }
+
+        .pricing-card.featured .pricing-check {
+          background: rgba(255, 255, 255, 0.15);
+          border-color: rgba(255, 255, 255, 0.2);
+          color: #ffffff;
+        }
+
+        .pricing-cta {
+          display: block;
+          width: 100%;
+          padding: 15px 24px;
+          border-radius: 50px;
+          text-align: center;
+          font-family: inherit;
+          font-size: 0.95rem;
+          font-weight: 700;
+          text-decoration: none;
+          cursor: pointer;
+          transition: all 0.3s;
+          border: 2px solid #e5e5e5;
+          background: #ffffff;
+          color: #0a0a0a;
+        }
+
+        .pricing-cta:hover {
+          border-color: #0a0a0a;
+          transform: translateY(-2px);
+        }
+
+        .pricing-card.featured .pricing-cta {
+          background: #ffffff;
+          border-color: #ffffff;
+          color: #0a0a0a;
+          box-shadow: 0 8px 30px rgba(255, 255, 255, 0.15);
+        }
+
+        .pricing-card.featured .pricing-cta:hover {
+          background: #f5f5f5;
+          transform: translateY(-2px) scale(1.01);
+        }
+
+        .pricing-footnote {
+          text-align: center;
+          font-size: 0.8rem;
+          color: #a3a3a3;
+          margin-top: 28px;
+        }
+
+        @media (max-width: 768px) {
+          .pricing-grid {
+            grid-template-columns: 1fr;
+          }
+        }
+
         /* CTA Section */
         .cta-section {
           padding: 100px 40px;
@@ -2138,9 +2383,8 @@ const Home: NextPage = () => {
                 </div>
                 <h3>Free to use</h3>
                 <p>
-                  Daily limits for everyone. Payment plans coming soon—unlimited
-                  daily use will be available. Until then, email us to request
-                  free additional limits.
+                  Generous daily limits for everyone, free forever. Need more?
+                  Rewordly Pro unlocks unlimited daily use from $4.99/month.
                 </p>
               </div>
             </div>
@@ -2377,6 +2621,120 @@ const Home: NextPage = () => {
           </div>
         </section>
 
+        {/* Pricing Section */}
+        <section className="pricing-section" id="pricing">
+          <div className="section-container" style={{ textAlign: "center" }}>
+            <div className="section-header">
+              <span className="section-label">Pricing</span>
+              <h2 className="section-title">Simple, honest pricing</h2>
+              <p className="section-subtitle">
+                Start free, upgrade when you need unlimited. Cancel anytime.
+              </p>
+            </div>
+
+            <div className="pricing-toggle" role="tablist" aria-label="Billing period">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={pricingPlan === "monthly"}
+                className={pricingPlan === "monthly" ? "active" : ""}
+                onClick={() => setPricingPlan("monthly")}
+              >
+                Monthly
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={pricingPlan === "yearly"}
+                className={pricingPlan === "yearly" ? "active" : ""}
+                onClick={() => setPricingPlan("yearly")}
+              >
+                Yearly
+                <span className="save-pill">2 months free</span>
+              </button>
+            </div>
+
+            <div className="pricing-grid">
+              <div className="pricing-card">
+                <div className="pricing-plan-name">Free</div>
+                <p className="pricing-plan-desc">
+                  Everything you need to try Rewordly, forever.
+                </p>
+                <div className="pricing-amount">
+                  <span className="pricing-price">$0</span>
+                  <span className="pricing-period">/forever</span>
+                </div>
+                <ul className="pricing-features">
+                  <li>
+                    <span className="pricing-check">✓</span>10 rewrites per day
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>10 grammar checks per day
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>All writing tones
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>Works on every website
+                  </li>
+                </ul>
+                <a
+                  href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="pricing-cta"
+                >
+                  Add to Chrome — Free
+                </a>
+              </div>
+
+              <div className="pricing-card featured">
+                <div className="pricing-plan-name">
+                  Pro
+                  <span className="pricing-best-badge">
+                    {pricingPlan === "yearly" ? "Best value" : "Most popular"}
+                  </span>
+                </div>
+                <p className="pricing-plan-desc">
+                  Unlimited writing power for people who write all day.
+                </p>
+                <div className="pricing-amount">
+                  <span className="pricing-price">
+                    {pricingPlan === "yearly" ? "$49" : "$4.99"}
+                  </span>
+                  <span className="pricing-period">
+                    {pricingPlan === "yearly" ? "/year" : "/month"}
+                  </span>
+                </div>
+                <ul className="pricing-features">
+                  <li>
+                    <span className="pricing-check">✓</span>Unlimited rewrites every day
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>Unlimited grammar checks
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>All writing tones included
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>Priority support
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>Cancel anytime
+                  </li>
+                </ul>
+                <a href="/dashboard" className="pricing-cta">
+                  Upgrade to Pro
+                </a>
+              </div>
+            </div>
+
+            <p className="pricing-footnote">
+              Secure checkout by Dodo Payments. Prices in USD.
+            </p>
+          </div>
+        </section>
+
         {/* FAQ Section */}
         <section className="faq-section" id="faq">
           <div className="section-container">
@@ -2395,7 +2753,7 @@ const Home: NextPage = () => {
                 },
                 {
                   q: "Is Rewordly completely free?",
-                  a: "Yes. Rewordly is free with daily usage limits. No subscription, no API key, and no sign-up is needed to start. Create a free account to track your usage or request higher limits.",
+                  a: "Yes. Rewordly is free with daily usage limits — no API key and no sign-up needed to start. Create a free account for higher limits, or upgrade to Rewordly Pro ($4.99/month or $49/year) for unlimited daily rewrites and grammar checks.",
                 },
                 {
                   q: "How does the AI rewriting work?",

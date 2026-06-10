@@ -14,13 +14,16 @@ CREATE TABLE IF NOT EXISTS public.usage (
 
 CREATE INDEX IF NOT EXISTS idx_usage_identity_date ON public.usage (identity, date);
 
--- Subscriptions from LemonSqueezy (linked to Supabase user_id)
+-- Subscriptions from Dodo Payments (linked to Supabase user_id)
 CREATE TABLE IF NOT EXISTS public.subscriptions (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  lemon_subscription_id TEXT,
-  lemon_order_id TEXT,
-  lemon_variant_id TEXT,
+  dodo_subscription_id TEXT,
+  dodo_customer_id TEXT,
+  dodo_product_id TEXT,
+  plan TEXT,                              -- 'monthly' | 'yearly'
+  current_period_end TIMESTAMPTZ,
+  cancel_at_period_end BOOLEAN DEFAULT false,
   status TEXT NOT NULL DEFAULT 'inactive',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -28,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.subscriptions (
 );
 
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON public.subscriptions (user_id);
-CREATE INDEX IF NOT EXISTS idx_subscriptions_lemon_id ON public.subscriptions (lemon_subscription_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_dodo_id ON public.subscriptions (dodo_subscription_id);
 
 -- RLS: allow service role full access; optional: allow users to read own subscription
 ALTER TABLE public.usage ENABLE ROW LEVEL SECURITY;

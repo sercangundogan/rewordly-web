@@ -1,5 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthFromRequest } from '../../lib/auth';
+import { getDodoClient, getProductIdForPlan, type ProPlan } from '../../lib/dodo';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,16 +9,14 @@ const corsHeaders = {
   'Content-Type': 'application/json',
 };
 
-const LEMON_API = 'https://api.lemonsqueezy.com/v1/checkouts';
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
   if (req.method === 'OPTIONS') {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    Object.entries(corsHeaders).forEach(([key, value]) => {
+      res.setHeader(key, value);
+    });
     res.status(200).end();
     return;
   }
@@ -43,13 +42,11 @@ export default async function handler(
       return;
     }
 
-    const apiKey = process.env.LEMONSQUEEZY_API_KEY;
-    const storeId = process.env.LEMONSQUEEZY_STORE_ID;
-    const variantId = process.env.LEMON_VARIANT_ID;
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rewordly.store';
+    const plan: ProPlan = req.body?.plan === 'yearly' ? 'yearly' : 'monthly';
+    const productId = getProductIdForPlan(plan);
 
-    if (!apiKey || !storeId || !variantId) {
-      console.error('Missing LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_STORE_ID, or LEMON_VARIANT_ID');
+    if (!process.env.DODO_PAYMENTS_API_KEY || !productId) {
+      console.error('Missing DODO_PAYMENTS_API_KEY or product id for plan:', plan);
       res.status(500).json({
         error: 'Configuration Error',
         message: 'Checkout is not configured.',
@@ -57,49 +54,18 @@ export default async function handler(
       return;
     }
 
-    const body = {
-      data: {
-        type: 'checkouts',
-        attributes: {
-          product_options: {
-            redirect_url: `${baseUrl}/?checkout=success`,
-            enabled_variants: [parseInt(variantId, 10)],
-          },
-          checkout_data: {
-            custom: { user_id: userId },
-            email: email || undefined,
-          },
-        },
-        relationships: {
-          store: { data: { type: 'stores', id: storeId } },
-          variant: { data: { type: 'variants', id: variantId } },
-        },
-      },
-    };
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://rewordly.store';
+    const client = getDodoClient();
 
-    const response = await fetch(LEMON_API, {
-      method: 'POST',
-      headers: {
-        Accept: 'application/vnd.api+json',
-        'Content-Type': 'application/vnd.api+json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
+    const session = await client.checkoutSessions.create({
+      product_cart: [{ product_id: productId, quantity: 1 }],
+      customer: email ? { email } : undefined,
+      metadata: { user_id: userId, plan },
+      return_url: `${baseUrl}/dashboard?checkout=success`,
+      show_saved_payment_methods: true,
     });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error('LemonSqueezy checkout error:', response.status, errText);
-      res.status(502).json({
-        error: 'Checkout Error',
-        message: 'Could not create checkout. Please try again.',
-      });
-      return;
-    }
-
-    const data = await response.json();
-    const checkoutUrl = data?.data?.attributes?.url;
-    if (!checkoutUrl) {
+    if (!session.checkout_url) {
       res.status(502).json({
         error: 'Checkout Error',
         message: 'Invalid response from payment provider.',
@@ -107,12 +73,12 @@ export default async function handler(
       return;
     }
 
-    res.status(200).json({ url: checkoutUrl });
+    res.status(200).json({ url: session.checkout_url });
   } catch (error) {
     console.error('Checkout API error:', error);
     res.status(500).json({
       error: 'Internal Server Error',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: 'Could not create checkout. Please try again.',
     });
   }
 }

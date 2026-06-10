@@ -75,7 +75,7 @@ const Terms: NextPage = () => {
           <p className="mt-2 text-neutral-600 leading-relaxed">
             Creating an account is optional. You are responsible for keeping
             your credentials secure. Paid subscriptions are governed by the
-            terms presented at checkout (e.g., Lemon Squeezy) and by our
+            terms presented at checkout (e.g., Dodo Payments) and by our
             refund policy as stated on the website or at purchase.
           </p>
         </section>

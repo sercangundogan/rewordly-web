@@ -1,5 +1,5 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { getAuthFromRequest } from '../../lib/auth';
+import { getAuthFromRequest, getSubscriptionInfo } from '../../lib/auth';
 import { getUsage } from '../../lib/usage';
 import { getLimitsForUser, hasCustomUserLimits, type LimitTier } from '../../lib/limits';
 
@@ -60,6 +60,14 @@ export default async function handler(
       requirePayment: tier === 'free' && !hasCustomUserLimits(userId),
     };
     if (email) payload.user = { email };
+    if (userId && tier === 'pro') {
+      const sub = await getSubscriptionInfo(userId);
+      payload.subscription = {
+        plan: sub.plan,
+        currentPeriodEnd: sub.currentPeriodEnd,
+        cancelAtPeriodEnd: sub.cancelAtPeriodEnd,
+      };
+    }
     res.status(200).json(payload);
   } catch (error) {
     console.error('Usage API error:', error);
