@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { rewriteText, RewriteRequest, RewriteResponse, ApiError, RewriteTone } from '../../lib/openai';
 import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
+import { getFeaturesForTier } from '../../lib/features';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -54,7 +55,11 @@ export default async function handler(
     const validTones: RewriteTone[] = ['standard', 'formal', 'casual', 'concise', 'elaborate'];
     const safeTone: RewriteTone = tone && validTones.includes(tone) ? tone : 'standard';
 
-    const result = await rewriteText(text, safeTone);
+    const features = getFeaturesForTier(limitResult.tier);
+    const result = await rewriteText(text, safeTone, {
+      model: features.model,
+      variants: features.rewriteVariants,
+    });
     await recordUsage(limitResult.userId, limitResult.anonymousId, 'rewrite');
     res.status(200).json(result);
   } catch (error) {

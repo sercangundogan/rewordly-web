@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { checkGrammarWithOpenAI } from '../../lib/services/grammarService';
 import { GrammarRequest, GrammarCheckResponse, ApiError } from '../../lib/types/grammar';
 import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
+import { getFeaturesForTier } from '../../lib/features';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,7 +58,8 @@ export default async function handler(
       return;
     }
 
-    const result = await checkGrammarWithOpenAI(text);
+    const features = getFeaturesForTier(limitResult.tier);
+    const result = await checkGrammarWithOpenAI(text, { model: features.model });
     await recordUsage(limitResult.userId, limitResult.anonymousId, 'grammar');
     res.status(200).json(result);
   } catch (error) {
