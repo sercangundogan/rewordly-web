@@ -1,9 +1,18 @@
 import { GetStaticPaths, GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
-import ReactMarkdown from "react-markdown";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
 import Header from "../../components/Header";
 import { getAllSlugs, getPostBySlug, BlogPost } from "../../lib/blog";
+
+const markdownComponents: Components = {
+  table: ({ children }) => (
+    <div className="blog-table-wrap">
+      <table className="blog-table">{children}</table>
+    </div>
+  ),
+};
 
 const BASE_URL =
   process.env.NEXT_PUBLIC_APP_URL || "https://rewordly.store";
@@ -152,6 +161,69 @@ const BlogPostPage: NextPage<BlogPostPageProps> = ({ post }) => {
         .blog-article-body :global(a:hover) {
           color: #262626;
         }
+        .blog-article-body :global(.blog-table-wrap) {
+          margin: 1.6em 0;
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+          border: 1px solid #e5e5e5;
+          border-radius: 16px;
+          background: #ffffff;
+          box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
+        }
+        .blog-article-body :global(.blog-table) {
+          width: 100%;
+          min-width: 520px;
+          border-collapse: collapse;
+          font-size: 0.95rem;
+          line-height: 1.5;
+        }
+        .blog-article-body :global(.blog-table th) {
+          padding: 14px 18px;
+          text-align: left;
+          font-weight: 700;
+          color: #0a0a0a;
+          background: #fafafa;
+          border-bottom: 1px solid #e5e5e5;
+          white-space: nowrap;
+        }
+        .blog-article-body :global(.blog-table th:first-child) {
+          border-top-left-radius: 15px;
+        }
+        .blog-article-body :global(.blog-table th:last-child) {
+          border-top-right-radius: 15px;
+        }
+        .blog-article-body :global(.blog-table td) {
+          padding: 14px 18px;
+          color: #171717;
+          border-bottom: 1px solid #f0f0f0;
+          vertical-align: top;
+        }
+        .blog-article-body :global(.blog-table td:first-child) {
+          font-weight: 600;
+          color: #0a0a0a;
+        }
+        .blog-article-body :global(.blog-table tr:last-child td) {
+          border-bottom: none;
+        }
+        .blog-article-body :global(.blog-table tbody tr:hover td) {
+          background: #fafafa;
+        }
+        .blog-article-body :global(blockquote) {
+          margin: 1.4em 0;
+          padding: 16px 20px;
+          border-left: 3px solid #d4d4d4;
+          border-radius: 0 12px 12px 0;
+          background: #fafafa;
+          color: #525252;
+        }
+        .blog-article-body :global(blockquote p) {
+          margin-bottom: 0;
+        }
+        .blog-article-body :global(hr) {
+          margin: 2.5em 0;
+          border: none;
+          border-top: 1px solid #e5e5e5;
+        }
         @media (max-width: 768px) {
           .blog-article-wrap {
             padding: 100px 20px 60px;
@@ -182,7 +254,12 @@ const BlogPostPage: NextPage<BlogPostPageProps> = ({ post }) => {
               )}
             </header>
             <div className="blog-article-body">
-              <ReactMarkdown>{post.content}</ReactMarkdown>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {post.content}
+              </ReactMarkdown>
             </div>
           </article>
         </main>
