@@ -1,6 +1,6 @@
 ---
-title: "Rewrite Text Chrome Extension: Improve Any Sentence in One Click"
-description: "Discover how to rewrite any selected text instantly with a Chrome extension. Improve clarity, tone, and grammar without copy-paste."
+title: "Rewrite Text Chrome Extension: Improve Sentences Fast"
+description: "Use a Chrome extension to rewrite and improve any sentence instantly without copy-pasting."
 date: "2026-03-02"
 author: "Rewordly"
 image: "/og-image.png"

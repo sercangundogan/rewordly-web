@@ -1,6 +1,6 @@
 ---
-title: "Paraphrasing vs Rewriting: What’s the Difference?"
-description: "Learn the difference between paraphrasing and rewriting. Understand when to use each to improve clarity, tone, and originality."
+title: "Paraphrasing vs Rewriting: Key Differences Explained"
+description: "Understand when to paraphrase or rewrite to enhance clarity, tone, and originality in your writing."
 date: "2026-03-20"
 author: "Rewordly"
 image: "/og-image.png"
