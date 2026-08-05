@@ -1,6 +1,6 @@
 ---
 title: "Rewrite Selected Text Instantly in Your Browser"
-description: "Learn how to rewrite selected text directly on any webpage without copy-paste. Improve clarity and tone in one click."
+description: "Easily rewrite selected text on any webpage to enhance clarity and tone without copy-pasting."
 date: "2026-03-05"
 author: "Rewordly"
 image: "/og-image.png"
