@@ -1,6 +1,6 @@
 ---
 title: "Best Free Grammar Checker Tools (2026 Guide)"
-description: "Looking for the best free grammar checker? Compare top tools to fix grammar, improve clarity, and write better instantly."
+description: "Compare top free grammar checkers to fix mistakes, improve clarity, and write better instantly with our 2026 guide."
 date: "2026-03-29"
 author: "Rewordly"
 image: "/og-image.png"

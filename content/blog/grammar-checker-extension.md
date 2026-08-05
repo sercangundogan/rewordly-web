@@ -1,6 +1,6 @@
 ---
-title: "Grammar Checker Extension: Fix Mistakes Instantly in Your Browser"
-description: "Use a grammar checker extension to fix spelling and grammar mistakes directly on any website. No copy-paste required."
+title: "Grammar Checker Extension: Fix Mistakes Instantly in Browser"
+description: "Use a grammar checker extension to correct spelling and grammar errors directly on any website without copy-paste."
 date: "2026-03-08"
 author: "Rewordly"
 image: "/og-image.png"

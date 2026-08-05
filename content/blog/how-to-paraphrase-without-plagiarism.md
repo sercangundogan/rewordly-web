@@ -1,6 +1,6 @@
 ---
-title: "How to Paraphrase Without Plagiarism (Step-by-Step Guide)"
-description: "Learn how to paraphrase correctly without plagiarism. Follow simple steps to rewrite text while keeping the original meaning."
+title: "How to Paraphrase Without Plagiarism: Step-by-Step Guide"
+description: "Follow simple steps to paraphrase correctly and avoid plagiarism while keeping the original meaning clear."
 date: "2026-03-23"
 author: "Rewordly"
 image: "/og-image.png"

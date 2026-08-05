@@ -1,6 +1,6 @@
 ---
-title: "Change Tone of Text Instantly (Formal, Casual, or Professional)"
-description: "Learn how to change the tone of your text instantly. Make your writing more formal, casual, or professional with ease."
+title: "Change Tone of Text Instantly: Formal, Casual & Professional"
+description: "Learn how to instantly change your text tone to formal, casual, or professional for effective communication."
 date: "2026-03-14"
 author: "Rewordly"
 image: "/og-image.png"
