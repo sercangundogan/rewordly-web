@@ -1,6 +1,6 @@
 ---
-title: "Rewordly vs Grammarly: Which AI Writing Tool Wins?"
-description: "Compare Rewordly vs Grammarly to see which AI writing tool fits your workflow, from rewriting and grammar checks to browser integration and pricing."
+title: "Rewordly vs Grammarly: Which AI Writing Tool Is Best?"
+description: "Compare Rewordly and Grammarly to find the ideal AI tool for rewriting, grammar checks, and more."
 date: "2026-04-02"
 author: "Rewordly"
 image: "/og-image.png"
