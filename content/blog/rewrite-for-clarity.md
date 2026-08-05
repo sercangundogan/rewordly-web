@@ -1,6 +1,6 @@
 ---
-title: "Rewrite for Clarity: Make Your Sentences Clear and Easy to Understand"
-description: "Learn how to rewrite sentences for clarity. Improve readability and make your writing easier to understand instantly."
+title: "Rewrite for Clarity: Make Sentences Clear & Easy to Understand"
+description: "Improve readability by rewriting sentences for clarity and simplicity."
 date: "2026-03-17"
 author: "Rewordly"
 image: "/og-image.png"

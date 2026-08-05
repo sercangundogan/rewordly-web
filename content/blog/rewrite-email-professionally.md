@@ -1,6 +1,6 @@
 ---
-title: "Rewrite Emails Professionally: Improve Tone and Clarity Instantly"
-description: "Learn how to rewrite emails professionally to sound clear, confident, and polite. Improve your email writing instantly with AI."
+title: "Rewrite Emails Professionally: Improve Tone & Clarity"
+description: "Learn to rewrite emails professionally for clear, confident, and polite communication instantly."
 date: "2026-03-11"
 author: "Rewordly"
 image: "/og-image.png"
