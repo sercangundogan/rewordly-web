@@ -20,6 +20,8 @@ type UsageData = {
   grammarLimit?: number | null;
   isSubscribed?: boolean;
   subscription?: SubscriptionData;
+  /** Live check quota in characters; monthly for Pro (lib/check/quota.ts). */
+  autoCheck?: { used: number; limit: number; period: 'lifetime' | 'day' | 'month' };
 };
 
 type Plan = 'monthly' | 'yearly';
@@ -213,6 +215,9 @@ const Dashboard: NextPage = () => {
   const rewriteLimit = usage?.rewriteLimit ?? null;
   const grammarUsed = usage?.grammarUsed ?? 0;
   const grammarLimit = usage?.grammarLimit ?? null;
+  const autoCheck = usage?.autoCheck;
+  const formatChars = (n: number) =>
+    new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 }).format(n);
   const formatLimit = (used: number, limit: number | null) =>
     limit === null ? 'Unlimited' : `${used} / ${limit}`;
   const formatDate = (iso: string | null | undefined) => {
@@ -377,6 +382,22 @@ const Dashboard: NextPage = () => {
                       ? `Pro access ends on ${formatDate(sub.currentPeriodEnd)}`
                       : `Renews on ${formatDate(sub.currentPeriodEnd)}`}
                   </p>
+                )}
+                {autoCheck && autoCheck.limit > 0 && (
+                  <div className="mb-3">
+                    <div className="flex justify-between text-sm text-gray-600 mb-1.5">
+                      <span>Live check this month</span>
+                      <span className="font-medium text-gray-800">
+                        {formatChars(autoCheck.used)} / {formatChars(autoCheck.limit)} characters
+                      </span>
+                    </div>
+                    <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-[#0a0a0a]"
+                        style={{ width: `${Math.min(100, (autoCheck.used / autoCheck.limit) * 100)}%` }}
+                      />
+                    </div>
+                  </div>
                 )}
                 <button
                   type="button"
