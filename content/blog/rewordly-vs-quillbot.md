@@ -56,7 +56,8 @@ QuillBot is better suited for longer, dedicated rewriting sessions — but not f
 ### Rewordly
 
 - Rewrite selected text instantly  
-- Grammar checking  
+- Grammar checking as you type, or on demand  
+- Automatic language detection  
 - Works across all websites  
 - No sign-up required  
 - Lightweight and fast  

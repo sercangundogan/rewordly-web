@@ -404,6 +404,46 @@ const ChromeIcon = ({ size = 24, color = "#0a0a0a" }: { size?: number, color?: s
   </svg>
 );
 
+/** Shown in the FAQ section and in the FAQPage structured data, so the two never drift apart. */
+const LANDING_FAQ = [
+  {
+    q: "What is Rewordly?",
+    a: "Rewordly is a free Chrome extension that checks your grammar and spelling as you type and rewrites text with AI, on almost any website. Mistakes are underlined right where you write: hover to see the fix and apply it in one click.",
+  },
+  {
+    q: "How does the live grammar check work?",
+    a: "When you write in a text box, comment, post or editor, Rewordly checks each sentence once you finish it (or pause), and underlines clear spelling, grammar and punctuation mistakes. Hover an underline to see the suggestion and why, then apply it, ignore it, or add the word to your dictionary. Fixes go through the site's own editor, so formatting and undo keep working.",
+  },
+  {
+    q: "Which languages does Rewordly support?",
+    a: "Rewordly detects the language of every sentence automatically, so you can write in English, Turkish, German, Spanish and many other languages without changing any settings. Suggestions are explained in the language you wrote in.",
+  },
+  {
+    q: "Is Rewordly free?",
+    a: "Yes. You can try live checking right away, without an account. Create a free account to keep going with a daily allowance of live checks, plus 10 rewrites and 10 grammar checks a day. Rewordly Pro ($4.99/month or $49/year) removes the daily limits.",
+  },
+  {
+    q: "What websites does Rewordly work on?",
+    a: "Rewordly works in the text boxes and editors of most websites in Chrome, including Reddit, X (Twitter), Medium and LinkedIn. It skips password, email and payment fields and code editors. Google Docs isn't supported yet.",
+  },
+  {
+    q: "Does Rewordly store my text?",
+    a: "Rewordly only checks the field you're typing in, sentence by sentence, and skips password fields and fields marked as email, phone or payment details. To make checks faster and keep Rewordly free, we keep check results (the flagged words and suggestions, not your full text) and a count of characters checked for usage limits. Text is processed with OpenAI's API. We never sell your text.",
+  },
+  {
+    q: "Can I turn off live checking?",
+    a: "Yes. Switch off \"Auto grammar check\" in the Rewordly popup, or disable Rewordly on a specific site from the right-click menu. Selecting text and clicking Rewrite or Check Grammar keeps working either way.",
+  },
+  {
+    q: "How is Rewordly different from Grammarly or QuillBot?",
+    a: "Rewordly combines live, as-you-type underlines with one-click AI rewriting in a single lightweight extension. It works in many languages, lets you start without an account, and fixes text in place on the page instead of in a separate app. Pro is $4.99/month.",
+  },
+  {
+    q: "Can I use Rewordly with keyboard shortcuts?",
+    a: "Yes. The default shortcuts are Ctrl+Shift+E for rewriting and Ctrl+Shift+L for grammar check. You can customise them in Chrome's extension shortcut settings; there's a direct link in the Rewordly popup.",
+  },
+];
+
 const Home: NextPage = () => {
   const [pricingPlan, setPricingPlan] = useState<"monthly" | "yearly">("yearly");
 
@@ -411,15 +451,15 @@ const Home: NextPage = () => {
     <>
       <Head>
         <title>
-          Rewordly – AI Text Rewriter &amp; Grammar Checker | Free Chrome Extension
+          Rewordly – AI Grammar Checker &amp; Rewriter for Chrome (Free)
         </title>
         <meta
           name="description"
-          content="Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. Select text, get instant AI improvements – no sign-up needed."
+          content="Rewordly underlines grammar and spelling mistakes as you type on any website, in any language, and rewrites text with AI in one click. Free Chrome extension, no sign-up."
         />
         <meta
           name="keywords"
-          content="AI text rewriter, AI grammar checker, chrome extension, free AI writing tool, rewrite text AI, paraphrase tool chrome, grammar check extension, AI writing assistant chrome, best AI chrome extension, AI text improver, rewordly, spelling correction, text rewriting tool"
+          content="grammar checker as you type, free grammar checker chrome extension, Grammarly alternative, AI grammar checker, multilingual grammar checker, spell checker chrome, AI text rewriter, paraphrase tool chrome, AI writing assistant, rewordly"
         />
         <meta name="author" content="Rewordly" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -431,11 +471,11 @@ const Home: NextPage = () => {
         <meta property="og:url" content="https://rewordly.store/" />
         <meta
           property="og:title"
-          content="Rewordly – AI Text Rewriter &amp; Grammar Checker | Free Chrome Extension"
+          content="Rewordly – AI Grammar Checker &amp; Rewriter for Chrome (Free)"
         />
         <meta
           property="og:description"
-          content="Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. No sign-up, no API key needed."
+          content="Mistakes underlined as you type, on any website, in any language. Plus one-click AI rewriting. Free Chrome extension, no sign-up."
         />
         <meta property="og:image" content="https://rewordly.store/og-image.png" />
         <meta property="og:site_name" content="Rewordly" />
@@ -446,11 +486,11 @@ const Home: NextPage = () => {
         <meta property="twitter:url" content="https://rewordly.store/" />
         <meta
           property="twitter:title"
-          content="Rewordly – AI Text Rewriter &amp; Grammar Checker | Free Chrome Extension"
+          content="Rewordly – AI Grammar Checker &amp; Rewriter for Chrome (Free)"
         />
         <meta
           property="twitter:description"
-          content="Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. No sign-up, no API key needed."
+          content="Mistakes underlined as you type, on any website, in any language. Plus one-click AI rewriting. Free Chrome extension, no sign-up."
         />
         <meta property="twitter:image" content="https://rewordly.store/og-image.png" />
 
@@ -492,11 +532,11 @@ const Home: NextPage = () => {
               "operatingSystem": "Chrome",
               "applicationCategory": "BrowserApplication",
               "applicationSubCategory": "Writing Assistant",
-              "description": "Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. Select any text on any site and get instant AI improvements – no sign-up or API key required.",
+              "description": "Rewordly is a free Chrome extension that underlines grammar and spelling mistakes as you type on any website, in any language, and rewrites text with AI in one click. No sign-up or API key required to start.",
               "url": "https://rewordly.store",
               "downloadUrl": "https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp",
               "installUrl": "https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp",
-              "softwareVersion": "1.6.0",
+              "softwareVersion": "1.8.0",
               "offers": {
                 "@type": "Offer",
                 "price": "0",
@@ -505,20 +545,20 @@ const Home: NextPage = () => {
               "aggregateRating": {
                 "@type": "AggregateRating",
                 "ratingValue": "5.0",
-                "ratingCount": "40",
+                "ratingCount": "6",
                 "bestRating": "5",
                 "worstRating": "1"
               },
               "featureList": [
+                "Live grammar and spelling check as you type",
+                "Automatic language detection",
+                "One-click fixes that keep formatting and undo",
                 "AI-powered text rewriting",
-                "Grammar and spelling check",
                 "Tone adjustment (formal, casual, concise, elaborate)",
                 "Shorter and longer text controls",
-                "Works on Gmail, Twitter, Reddit, Medium",
-                "One-click apply back to page",
+                "Works on Reddit, X, Medium, LinkedIn and most text boxes",
                 "Keyboard shortcuts",
-                "Privacy-first: no data stored",
-                "100% free, no sign-up required"
+                "Free to start, no sign-up required"
               ],
               "screenshot": "https://rewordly.store/og-image.png",
               "publisher": {
@@ -539,7 +579,7 @@ const Home: NextPage = () => {
               "@type": "WebSite",
               "name": "Rewordly",
               "url": "https://rewordly.store",
-              "description": "Free AI Chrome extension for text rewriting, paraphrasing, and grammar checking.",
+              "description": "Free Chrome extension that checks grammar as you type and rewrites text with AI.",
               "potentialAction": {
                 "@type": "SearchAction",
                 "target": "https://rewordly.store/blog?q={search_term_string}",
@@ -549,71 +589,18 @@ const Home: NextPage = () => {
           }}
         />
 
-        {/* Structured Data: FAQPage */}
+        {/* Structured Data: FAQPage (same questions as the visible FAQ) */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "FAQPage",
-              "mainEntity": [
-                {
-                  "@type": "Question",
-                  "name": "What is Rewordly?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. You select any text on any site, and Rewordly's AI instantly improves it – no sign-up or API key required."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "Is Rewordly free to use?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Yes. Rewordly is completely free with daily usage limits. No subscription, no API key, and no sign-up required to start using it. For higher limits, you can create a free account."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "How does Rewordly use AI to rewrite text?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Rewordly uses an upgraded AI backend to analyze and rewrite selected text while preserving your original meaning. You can adjust the tone (formal, casual, concise, or elaborate) and control the length with Shorter and Longer buttons. All processing happens through a secure backend – your text is never stored."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "Does Rewordly store my text or data?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "No. Rewordly does not store your text locally or on its servers. Your text is sent to a secure AI backend for processing and the result is returned immediately. Nothing is retained after your session."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What websites does Rewordly work on?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Rewordly works on any website in Chrome, including Gmail, Twitter/X, Reddit, Medium, LinkedIn, Notion, and any other site with editable text fields. It appears as a floating button whenever you select text in an input, textarea, or contenteditable area."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "What is the best free AI writing Chrome extension?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Rewordly is one of the top-rated free AI writing Chrome extensions, with a 5-star rating on the Chrome Web Store. It offers AI text rewriting, grammar checking, tone control, and one-click apply – all for free and without requiring sign-up or an API key."
-                  }
-                },
-                {
-                  "@type": "Question",
-                  "name": "How is Rewordly different from Grammarly or QuillBot?",
-                  "acceptedAnswer": {
-                    "@type": "Answer",
-                    "text": "Rewordly is entirely free with no premium paywall for core features, requires no account to start, and works as a lightweight floating button directly on any webpage. Unlike Grammarly, it focuses on AI rewriting and paraphrasing rather than passive correction suggestions. Unlike QuillBot, it works natively in your browser on any site without copy-pasting."
-                  }
-                }
-              ]
+              "mainEntity": LANDING_FAQ.map((item) => ({
+                "@type": "Question",
+                "name": item.q,
+                "acceptedAnswer": { "@type": "Answer", "text": item.a },
+              })),
             }),
           }}
         />
@@ -2174,15 +2161,16 @@ const Home: NextPage = () => {
               
               <div className="hero-badge">
                 <span className="hero-badge-dot"></span>
-                Free Chrome Extension
+                New: checks your writing as you type
               </div>
               <h1>
-                Write better with <span>AI-powered</span> text enhancement
+                Fix mistakes <span>as you type</span>, on every website
               </h1>
               <p className="hero-description">
-                Select any text on any website and instantly get AI-powered
-                rewriting, grammar checking, and spelling correction. No sign-up
-                required.
+                Rewordly underlines grammar and spelling mistakes while you
+                write, in emails, comments, posts and docs, in any language.
+                Hover to fix in one click, or rewrite any text with AI. Free to
+                start, no sign-up needed.
               </p>
               <div className="hero-buttons">
                 <a
@@ -2210,15 +2198,15 @@ const Home: NextPage = () => {
               </div>
               <div className="hero-stats">
                 <div className="stat-item">
-                  <div className="stat-value">100%</div>
-                  <div className="stat-label">Free Forever</div>
+                  <div className="stat-value">Free</div>
+                  <div className="stat-label">To Start, No Sign-up</div>
                 </div>
                 <div className="stat-item">
                   <div className="stat-value">5.0★</div>
                   <div className="stat-label">Chrome Store Rating</div>
                 </div>
                 <div className="stat-item">
-                  <div className="stat-value">40+</div>
+                  <div className="stat-value">120+</div>
                   <div className="stat-label">Happy Users</div>
                 </div>
               </div>
@@ -2235,8 +2223,8 @@ const Home: NextPage = () => {
                   <SparklesIcon size={22} />
                 </div>
                 <div className="floating-stats-content">
-                  <span className="floating-stats-value">50K+</span>
-                  <span className="floating-stats-label">Texts Improved</span>
+                  <span className="floating-stats-value">Live</span>
+                  <span className="floating-stats-label">Checks As You Type</span>
                 </div>
               </div>
 
@@ -2253,7 +2241,7 @@ const Home: NextPage = () => {
                   <div className="avatar">+5</div>
                 </div>
                 <div className="floating-users-text">
-                  <span className="floating-users-count">40+ Users</span>
+                  <span className="floating-users-count">120+ Users</span>
                   <span className="floating-users-label">Happy Writers</span>
                 </div>
               </div>
@@ -2341,20 +2329,20 @@ const Home: NextPage = () => {
               </div>
               <div className="feature-card">
                 <div className="feature-icon-wrapper feature-icon-2">✓</div>
-                <h3>Grammar Check</h3>
+                <h3>Live Grammar Check</h3>
                 <p>
-                  AI grammar analysis with detailed error highlighting.
-                  See exactly what's wrong and how to fix it.
+                  Mistakes are underlined as you type, like a second pair of
+                  eyes. Hover to see what&apos;s wrong and fix it in one click.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon-wrapper feature-icon-3">
                   <PencilPaperIcon size={32} />
                 </div>
-                <h3>Spelling Correction</h3>
+                <h3>Any Language</h3>
                 <p>
-                  Automatic typo detection with smart suggestions. Fix spelling
-                  mistakes instantly.
+                  Write in English, Turkish, German, Spanish and more. Rewordly
+                  detects the language of every sentence automatically.
                 </p>
               </div>
               <div className="feature-card">
@@ -2363,28 +2351,28 @@ const Home: NextPage = () => {
                 </div>
                 <h3>Works Everywhere</h3>
                 <p>
-                  Use on any website - Reddit, Twitter, Gmail, LinkedIn, and
-                  more. Write better everywhere.
+                  Reddit, X, Medium, LinkedIn and almost any text box or editor.
+                  Fixes keep your formatting and undo history.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon-wrapper feature-icon-5">
                   <ShieldIcon size={32} />
                 </div>
-                <h3>Privacy First</h3>
+                <h3>Private by Design</h3>
                 <p>
-                  No account required, no data stored. Your text is processed
-                  securely and never saved.
+                  Only the field you&apos;re typing in is checked. Password and
+                  payment fields are skipped, and we never sell your text.
                 </p>
               </div>
               <div className="feature-card">
                 <div className="feature-icon-wrapper feature-icon-6">
                   <MoneyBagIcon size={32} />
                 </div>
-                <h3>Free to use</h3>
+                <h3>Free to Start</h3>
                 <p>
-                  Generous daily limits for everyone, free forever. Need more?
-                  Rewordly Pro unlocks unlimited daily use from $4.99/month.
+                  Try live checking without an account, then keep going free
+                  with daily limits. Rewordly Pro removes them from $4.99/month.
                 </p>
               </div>
             </div>
@@ -2398,65 +2386,53 @@ const Home: NextPage = () => {
               <span className="section-label">How it works</span>
               <h2 className="section-title">How Rewordly Works</h2>
               <p className="section-subtitle">
-                Select text, click the Rewordly button, and get instant
-                improvements.
+                Mistakes are underlined while you type. Rewriting is one click
+                away.
               </p>
             </div>
             <div className="how-steps">
               <div className="how-step">
                 <div className="how-step-number">1</div>
                 <div className="how-step-text">
-                  <h4>Select text</h4>
+                  <h4>Write anywhere</h4>
                   <p>
-                    Select any text (3+ characters) on a webpage — in inputs,
-                    textareas, or contenteditable areas.
+                    Type in any text box, comment, post or editor. Rewordly checks each sentence once you finish it.
                   </p>
                 </div>
               </div>
               <div className="how-step">
                 <div className="how-step-number">2</div>
                 <div className="how-step-text">
-                  <h4>Floating button</h4>
+                  <h4>See mistakes underlined</h4>
                   <p>
-                    A floating button appears next to the selection with two
-                    actions: <strong>Rewrite</strong> (rewrite with AI) and{" "}
-                    <strong>Check Grammar</strong> (fix grammar and spelling).
+                    Clear spelling, grammar and punctuation mistakes get a red underline right where you wrote them, in any language.
                   </p>
                 </div>
               </div>
               <div className="how-step">
                 <div className="how-step-number">3</div>
                 <div className="how-step-text">
-                  <h4>Modal</h4>
+                  <h4>Hover and fix</h4>
                   <p>
-                    A modal shows the original and the result (rewritten or
-                    corrected) side by side. Press <strong>Esc</strong> to close,
-                    use <strong>Shorter</strong> / <strong>Longer</strong> or tone
-                    controls to refine rewrites, and <strong>Apply</strong> to
-                    drop the text back into the field you started from.
+                    Hover an underline to see the suggestion and why. Apply it in one click, ignore it, or add the word to your dictionary. Undo works as usual.
                   </p>
                 </div>
               </div>
               <div className="how-step">
                 <div className="how-step-number">4</div>
                 <div className="how-step-text">
-                  <h4>Copy</h4>
+                  <h4>Rewrite with AI</h4>
                   <p>
-                    One-click copy of the result to your clipboard. Use the
-                    extension popup to enable or disable the button, see
-                    remaining usage when you&apos;re signed in, or right-click for
-                    the context menu: Rewordly → Rewrite Text, Rewordly → Check
-                    Grammar, or disable/enable on the current page.
+                    Select any text and click <strong>Rewrite</strong> to make it clearer, <strong>Shorter</strong> or <strong>Longer</strong>, or change its tone: formal, casual, concise or elaborate. <strong>Apply</strong> drops it back into the field.
                   </p>
                 </div>
               </div>
               <div className="how-step">
                 <div className="how-step-number">5</div>
                 <div className="how-step-text">
-                  <h4>Welcome &amp; changelog</h4>
+                  <h4>Stay in control</h4>
                   <p>
-                    Welcome page on first install and changelog when you update
-                    the extension.
+                    <strong>Ctrl+Shift+E</strong> rewrites and <strong>Ctrl+Shift+L</strong> checks the selection. Switch live checking off in the popup, or per site from the right-click menu.
                   </p>
                 </div>
               </div>
@@ -2503,10 +2479,10 @@ const Home: NextPage = () => {
                     <TargetIcon size={24} />
                   </div>
                   <div className="benefit-text">
-                    <h4>Context-Aware</h4>
+                    <h4>Quiet Until It Matters</h4>
                     <p>
-                      AI understands context and suggests appropriate
-                      improvements.
+                      No pop-ups or nagging: only clear mistakes are flagged,
+                      and nothing changes until you click.
                     </p>
                   </div>
                 </div>
@@ -2529,8 +2505,8 @@ const Home: NextPage = () => {
                   <div className="benefit-text">
                     <h4>Save Money</h4>
                     <p>
-                      Free alternative to expensive grammar tools. Same quality,
-                      zero cost.
+                      A free alternative to expensive writing tools, with an
+                      affordable Pro plan when you need more.
                     </p>
                   </div>
                 </div>
@@ -2666,6 +2642,9 @@ const Home: NextPage = () => {
                 </div>
                 <ul className="pricing-features">
                   <li>
+                    <span className="pricing-check">✓</span>Live grammar check as you type (daily allowance)
+                  </li>
+                  <li>
                     <span className="pricing-check">✓</span>10 rewrites per day
                   </li>
                   <li>
@@ -2708,10 +2687,16 @@ const Home: NextPage = () => {
                 </div>
                 <ul className="pricing-features">
                   <li>
+                    <span className="pricing-check">✓</span>Unlimited live grammar checks
+                  </li>
+                  <li>
                     <span className="pricing-check">✓</span>Unlimited rewrites every day
                   </li>
                   <li>
                     <span className="pricing-check">✓</span>Unlimited grammar checks
+                  </li>
+                  <li>
+                    <span className="pricing-check">✓</span>Up to 3 alternatives per rewrite
                   </li>
                   <li>
                     <span className="pricing-check">✓</span>All writing tones included
@@ -2730,7 +2715,7 @@ const Home: NextPage = () => {
             </div>
 
             <p className="pricing-footnote">
-              Secure checkout by Dodo Payments. Prices in USD.
+              Secure checkout by Dodo Payments. Prices in USD. Fair use applies to unlimited plans.
             </p>
           </div>
         </section>
@@ -2746,36 +2731,7 @@ const Home: NextPage = () => {
               </p>
             </div>
             <div className="faq-list">
-              {[
-                {
-                  q: "What is Rewordly?",
-                  a: "Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. Select any text on any site and get instant AI improvements – no sign-up or API key required.",
-                },
-                {
-                  q: "Is Rewordly completely free?",
-                  a: "Yes. Rewordly is free with daily usage limits — no API key and no sign-up needed to start. Create a free account for higher limits, or upgrade to Rewordly Pro ($4.99/month or $49/year) for unlimited daily rewrites and grammar checks.",
-                },
-                {
-                  q: "How does the AI rewriting work?",
-                  a: "Select any text in a browser input, textarea, or content area. A floating button appears – click Rewrite and Rewordly's AI instantly returns an improved version. You can adjust tone (formal, casual, concise, elaborate) and use Shorter / Longer buttons to refine the result, then apply it back with one click.",
-                },
-                {
-                  q: "What websites does Rewordly work on?",
-                  a: "Rewordly works on any website in Chrome – Gmail, Twitter/X, Reddit, Medium, LinkedIn, Notion, and anywhere else with editable text. It activates automatically when you select text in an input or editor.",
-                },
-                {
-                  q: "Does Rewordly store or share my text?",
-                  a: "No. Rewordly processes your text through a secure backend and returns the result immediately. Nothing is stored on your device or our servers after the response is delivered.",
-                },
-                {
-                  q: "How is Rewordly different from Grammarly or QuillBot?",
-                  a: "Rewordly is entirely free for core features, requires no account to start, and sits directly in your browser as a lightweight floating button. Unlike Grammarly, it focuses on AI rewriting and paraphrasing rather than passive inline corrections. Unlike QuillBot, it works natively on any webpage without copy-pasting to a separate tool.",
-                },
-                {
-                  q: "Can I use Rewordly with keyboard shortcuts?",
-                  a: "Yes. The default shortcuts are Ctrl+Shift+E for rewriting and Ctrl+Shift+L for grammar check. You can customise them in Chrome's extension shortcut settings – there's a direct link in the Rewordly popup.",
-                },
-              ].map((item, i) => (
+              {LANDING_FAQ.map((item, i) => (
                 <div key={i} className="faq-item" onClick={(e) => {
                   const el = e.currentTarget;
                   el.classList.toggle("open");
@@ -2798,8 +2754,8 @@ const Home: NextPage = () => {
           <div className="cta-container">
             <h2>Start writing better today</h2>
             <p>
-              Join thousands of users who are already improving their writing
-              with Rewordly. Install now and experience the difference.
+              Install Rewordly and let it catch the mistakes you&apos;d rather
+              not send, on every site you write.
             </p>
             <a
               href="https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp"

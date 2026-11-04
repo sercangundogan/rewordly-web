@@ -18,7 +18,7 @@ const Privacy: NextPage = () => {
         Privacy Policy
       </h1>
       <p className="mb-10 text-sm text-neutral-500">
-        Last updated: February 5, 2025
+        Last updated: October 21, 2026
       </p>
 
       <div className="prose prose-neutral max-w-none space-y-8">
@@ -45,13 +45,47 @@ const Privacy: NextPage = () => {
               processing. We do not store this content after processing.
             </li>
             <li>
+              <strong>Text you type (live grammar check):</strong> While
+              &quot;Auto grammar check&quot; is on, Rewordly checks the text field
+              you are typing in. Each sentence is sent to our servers for
+              checking after you finish it or pause, and only sentences that
+              changed are sent again. Rewordly skips password fields and fields
+              a site marks as email, phone, address, one-time code or payment
+              details, as well as code editors. You can
+              turn live checking off in the extension popup or disable Rewordly
+              on any site.
+            </li>
+            <li>
+              <strong>Check results:</strong> To make checks faster and keep
+              the free plan possible, we store the results of live checks: the
+              flagged words, the suggested corrections and short explanations,
+              linked to a one-way fingerprint (hash) of the sentence. We do not
+              store the full text you typed. The extension also keeps recent
+              results on your device so the same sentence is not checked twice.
+            </li>
+            <li>
               <strong>Account data (optional):</strong> If you sign in (e.g.,
               via email or Google), we store your email and account identifier
               for authentication and usage limits.
             </li>
             <li>
-              <strong>Usage data:</strong> We may collect anonymous usage
-              metrics (e.g., feature usage, errors) to improve the Service.
+              <strong>Usage data:</strong> To enforce usage limits we count how
+              many characters you have checked, linked to your account or, if
+              you are not signed in, to a random identifier created by the
+              extension. To prevent abuse of the free trial we also count usage
+              per IP address, which we store only as a salted one-way hash. We
+              log the size and cost of each AI request (never its text), and may
+              collect anonymous metrics such as errors to improve the Service.
+            </li>
+            <li>
+              <strong>Feature usage per site:</strong> To learn where Rewordly
+              is useful, the extension counts which features you use (for
+              example checks, applied fixes, rewrites) on which website, by
+              day. We store only the site&apos;s name (such as
+              &quot;medium.com&quot;), never the page address or any text, and
+              local or company-internal sites are recorded only as
+              &quot;private&quot;. These counts are linked to your account or the
+              extension&apos;s random identifier, like the usage data above.
             </li>
             <li>
               <strong>Cookies and similar tech:</strong> Our website may use
@@ -81,10 +115,15 @@ const Privacy: NextPage = () => {
             4. Data Retention &amp; Security
           </h2>
           <p className="mt-2 text-neutral-600 leading-relaxed">
-            Selected text is processed in real time and not retained. Account
-            and usage data are kept as long as your account is active or as
-            required by law. We use industry-standard measures to protect data
-            (e.g., encryption, access controls).
+            Selected text for rewrites and on-demand grammar checks is
+            processed in real time and not retained. Live check results (see
+            above) are kept to serve repeated checks and may be deleted at any
+            time as part of routine cleanup. Usage counters and request logs
+            are kept as long as needed to enforce limits and understand costs.
+            Account data is kept as long as your account is active or as
+            required by law. You can ask us to delete your data at any time
+            (see &quot;Your Rights&quot;). We use industry-standard measures to
+            protect data (e.g., encryption, access controls).
           </p>
         </section>
 
@@ -93,9 +132,20 @@ const Privacy: NextPage = () => {
             5. Third-Party Services
           </h2>
           <p className="mt-2 text-neutral-600 leading-relaxed">
-            We use third-party providers for hosting, authentication (e.g.,
-            Supabase, Google), AI processing (e.g., OpenAI), and analytics.
-            Their use of data is governed by their respective privacy policies.
+            We use third-party providers for hosting, database and
+            authentication (e.g., Supabase, Google), AI processing (OpenAI) and
+            analytics. Text you ask Rewordly to rewrite or check is sent to
+            OpenAI&apos;s API to produce the result. Their use of data is
+            governed by their respective privacy policies; see{" "}
+            <a
+              href="https://openai.com/enterprise-privacy/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-900 underline"
+            >
+              OpenAI&apos;s API data policy
+            </a>
+            . We do not sell your text or personal data.
           </p>
         </section>
 

@@ -1,63 +1,57 @@
 # Rewordly
 
-> Rewordly is a free AI-powered Chrome extension that rewrites, paraphrases, and checks grammar on any webpage. Select any text, get instant AI improvements – no sign-up or API key required.
+> Rewordly is a free Chrome extension that underlines grammar and spelling mistakes as you type on almost any website, in any language, and rewrites selected text with AI in one click. Free to start, no sign-up or API key required.
 
 ## Product
 
 - **Name**: Rewordly
-- **Category**: AI Writing Assistant / Chrome Extension
+- **Category**: AI Writing Assistant / Grammar Checker / Chrome Extension
 - **Platform**: Google Chrome (Chrome Web Store)
-- **Price**: Free (with optional account for higher daily limits)
+- **Price**: Free to start (no account needed to try live checking); free account with daily limits; Rewordly Pro $4.99/month or $49/year for unlimited use (fair use applies)
 - **Install**: https://chromewebstore.google.com/detail/rewordly/bpadlnmafgmnggjjggckmoggkeimhojp
 - **Website**: https://rewordly.store
 
 ## Core Features
 
-- **AI Text Rewriting**: Select any text on any webpage and get an AI-rewritten version instantly. Preserves your original meaning while improving clarity, fluency, and readability.
-- **Grammar & Spelling Check**: On-demand grammar and spelling corrections with suggestions shown in a clean modal.
-- **Tone Control**: Adjust rewrite tone to Standard, Formal, Casual, Concise, or Elaborate – from the popup or in the modal.
-- **Shorter / Longer**: Dedicated modal buttons to tighten or expand your text without retyping.
-- **Apply In Place**: Apply the rewritten or corrected text directly back into the field you started from.
-- **Works Everywhere**: Gmail, Twitter/X, Reddit, Medium, LinkedIn, Notion, and any site with editable text.
-- **Context Menu**: Right-click selected text → Rewrite or Check Grammar.
-- **Keyboard Shortcuts**: Ctrl+Shift+E to rewrite, Ctrl+Shift+L for grammar check (configurable).
-- **Privacy First**: No text stored locally or on servers. Processed through a secure AI backend.
+- **Live Grammar Check (as you type)**: Clear spelling, grammar and punctuation mistakes are underlined while you write, in text boxes and rich editors on most websites. Hover an underline to see the suggestion and a short reason, then apply, ignore, or add the word to your dictionary. "Fix all" applies every suggestion in a field.
+- **Automatic Language Detection**: Each sentence is checked in its own language (for example English, Turkish, German, Spanish), with no settings to change. Explanations are shown in the language you wrote in.
+- **Fixes Keep Formatting and Undo**: Corrections go through the site's own editor, so formatting stays intact and undo works.
+- **AI Text Rewriting**: Select text and click Rewrite to improve clarity and fluency while keeping the meaning. Pro returns up to three alternatives.
+- **Tone Control**: Standard, Formal, Casual, Concise, or Elaborate.
+- **Shorter / Longer**: Tighten or expand a rewrite without retyping.
+- **Apply In Place**: Put the rewritten or corrected text straight back into the field.
+- **Context Menu and Shortcuts**: Right-click → Rewordly → Rewrite or Check Grammar; Ctrl+Shift+E to rewrite, Ctrl+Shift+L to check grammar (configurable).
+- **Control**: Turn live checking off in the popup, or disable Rewordly on any site.
+
+## Where It Works
+
+Text boxes and editors on most websites in Chrome, including Reddit, X (Twitter), Medium and LinkedIn. Password fields, fields marked as email, phone or payment details, and code editors are skipped. Google Docs is not supported yet.
+
+## Privacy
+
+Only the field you are typing in is checked, sentence by sentence; only changed sentences are sent again. Check results (flagged words and suggestions, not the full text) are kept to make repeated checks faster. Text is processed with OpenAI's API. Rewordly does not sell user text. Full policy: https://rewordly.store/privacy
 
 ## How It Works
 
-1. Select any text (3+ characters) in an input, textarea, or content-editable area on any webpage.
-2. A floating button appears next to the selection.
-3. Click Rewrite (AI rewrite) or Check Grammar.
-4. Review the result in a side-by-side modal. Refine with tone and length controls.
-5. Click Apply to insert back into the field, or Copy to clipboard.
-
-## Comparison
-
-| Feature | Rewordly | Grammarly | QuillBot |
-|---|---|---|---|
-| Free tier | Full core features | Limited | Limited |
-| Sign-up required | No | Yes | Yes |
-| Works on any website | Yes (Chrome extension) | Yes | No (web app) |
-| AI rewriting | Yes | No (Premium) | Yes |
-| Grammar check | Yes | Yes | Yes |
-| Tone adjustment | Yes | No | Yes (Premium) |
-| Apply in place | Yes | No | No |
-| Price | Free | Freemium ($12/mo) | Freemium ($10/mo) |
+1. Install the extension and write anywhere. Mistakes are underlined after you finish a sentence or pause.
+2. Hover an underline and click the suggestion to fix it.
+3. To rewrite, select text (3+ characters), click Rewrite, adjust tone or length, then Apply or Copy.
 
 ## Use Cases
 
-- **Business professionals**: Write clear, confident emails without leaving your browser.
-- **Content creators**: Enhance articles, posts, and marketing copy instantly.
-- **Students**: Improve essays and academic writing with better clarity and grammar.
-- **Non-native English speakers**: Fix grammar and improve fluency in real time.
-- **Anyone**: Eliminate writing struggles in seconds, wherever you write online.
+- **Non-native English speakers**: catch mistakes before sending emails, posts and comments.
+- **People who write in several languages**: one tool that follows you from one language to the next.
+- **Professionals**: clear, correct emails and messages without leaving the browser.
+- **Creators and community members**: polished posts and replies on Reddit, X, Medium and LinkedIn.
+- **Students**: see what's wrong and why, not just a corrected copy.
 
 ## Blog & Resources
 
 - https://rewordly.store/blog – writing tips, AI guides, and how-tos
+- https://rewordly.store/blog/grammar-checker-as-you-type – how live grammar checking works
+- https://rewordly.store/blog/multilingual-grammar-checker – grammar checking in any language
+- https://rewordly.store/blog/rewordly-vs-grammarly – how Rewordly compares to Grammarly
 - https://rewordly.store/blog/rewordly-vs-quillbot – how Rewordly compares to QuillBot
-- https://rewordly.store/blog/grammar-checker-extension – guide to grammar checker Chrome extensions
-- https://rewordly.store/blog/rewrite-text-chrome-extension – guide to rewriting text with Chrome extensions
 - https://rewordly.store/blog/change-tone-of-text – how to change the tone of your writing with AI
 - https://rewordly.store/blog/rewrite-email-professionally – how to rewrite emails professionally
 
