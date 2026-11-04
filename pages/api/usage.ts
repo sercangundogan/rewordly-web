@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthFromRequest, getSubscriptionInfo } from '../../lib/auth';
 import { getUsage } from '../../lib/usage';
 import { getLimitsForUser, hasCustomUserLimits, type LimitTier } from '../../lib/limits';
+import { getQuota, quotaIdentity } from '../../lib/check/quota';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -45,7 +46,10 @@ export default async function handler(
     const auth = req.headers.authorization;
     const anonymousId = req.headers['x-anonymous-id'] as string | undefined;
     const { userId, tier, email } = await getAuthFromRequest(auth, anonymousId);
-    const usage = await getUsage(userId, anonymousId);
+    const [usage, autoCheck] = await Promise.all([
+      getUsage(userId, anonymousId),
+      getQuota(tier, quotaIdentity(userId, anonymousId)),
+    ]);
 
     const rewriteLimit = limitValue(tier, 'rewrite', userId);
     const grammarLimit = limitValue(tier, 'grammar', userId);
@@ -58,6 +62,8 @@ export default async function handler(
       isSubscribed: tier === 'pro',
       requireLogin: tier === 'anonymous',
       requirePayment: tier === 'free' && !hasCustomUserLimits(userId),
+      // Live check-as-you-type quota, in characters (lib/check/quota.ts).
+      autoCheck: { used: autoCheck.used, limit: autoCheck.limit, period: autoCheck.period },
     };
     if (email) payload.user = { email };
     if (userId && tier === 'pro') {
