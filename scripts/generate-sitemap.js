@@ -6,6 +6,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://rewordly.store";
 /** Paths to include in sitemap (no auth / app-shell URLs — those are noindex targets). */
 const STATIC_PATHS = [
   "",
+  "/try",
   "/blog",
   "/cookies",
   "/terms",

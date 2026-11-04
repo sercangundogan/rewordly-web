@@ -36,6 +36,9 @@ export default function Header({ showAuthSlot = false }: HeaderProps) {
       <Link href="/#pricing" className="site-header-link" onClick={closeMenu}>
         Pricing
       </Link>
+      <Link href="/try" className="site-header-link" onClick={closeMenu}>
+        Try it
+      </Link>
       <Link href="/blog" className="site-header-link" onClick={closeMenu}>
         Blog
       </Link>
