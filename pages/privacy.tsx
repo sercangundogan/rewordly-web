@@ -18,7 +18,7 @@ const Privacy: NextPage = () => {
         Privacy Policy
       </h1>
       <p className="mb-10 text-sm text-neutral-500">
-        Last updated: October 21, 2026
+        Last updated: November 5, 2026
       </p>
 
       <div className="prose prose-neutral max-w-none space-y-8">
@@ -62,6 +62,12 @@ const Privacy: NextPage = () => {
               linked to a one-way fingerprint (hash) of the sentence. We do not
               store the full text you typed. The extension also keeps recent
               results on your device so the same sentence is not checked twice.
+              Results are kept for up to 30 days on our servers and 7 days on
+              your device, then checked again. When you ignore a suggestion, the
+              extension sends only that suggestion&apos;s fingerprint, linked to
+              your account or the extension&apos;s random identifier, so
+              suggestions many people ignore can be removed. These votes are
+              deleted after 90 days.
             </li>
             <li>
               <strong>Account data (optional):</strong> If you sign in (e.g.,
