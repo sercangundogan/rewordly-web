@@ -12,6 +12,7 @@ export const EVENTS = [
   'live_fix', //        a suggestion applied (count = fixes, Fix all included)
   'live_fix_all', //    "Fix all" used
   'live_ignore', //     "Ignore"
+  'live_ignore_always', // "Always ignore"
   'live_dictionary', // "Add to dictionary"
   'live_badge', //      badge clicked
   'live_limit', //      checking stopped by the plan limit

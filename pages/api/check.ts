@@ -6,6 +6,7 @@ import { isBudgetExhausted, logUsage } from '../../lib/check/costs';
 import type { CheckParagraph, CheckParagraphResult } from '../../lib/check/types';
 import type { ApiError } from '../../lib/openai';
 import { normalizeHost } from '../../lib/metrics';
+import { decorateResults } from '../../lib/check/feedback';
 
 const MAX_PARAGRAPHS = 30;
 const MAX_PARAGRAPH_LENGTH = 3000;
@@ -93,7 +94,9 @@ export default async function handler(
   }
 
   try {
-    const { results: cached, pending } = await lookupCached(paragraphs);
+    const { results: cachedRaw, pending } = await lookupCached(paragraphs);
+    // Suppressed suggestions are dropped and the rest tagged for feedback (lib/check/feedback.ts).
+    const cached = await decorateResults(paragraphs, cachedRaw);
     if (pending.length === 0) {
       res.status(200).json({ results: cached, quota: null });
       return;
@@ -147,7 +150,7 @@ export default async function handler(
       judge ? logUsage({ identity, tier, model: judge.model, chars: 0, usage: judge.usage, host: normalizeHost((req.body as { host?: unknown }).host) }) : Promise.resolve(),
     ]);
 
-    const byId = new Map([...cached, ...fresh].map((r) => [r.id, r]));
+    const byId = new Map([...cached, ...(await decorateResults(paragraphs, fresh))].map((r) => [r.id, r]));
     res.status(200).json({
       results: paragraphs.map((p) => byId.get(p.id) ?? { id: p.id, language: '', issues: [] }),
       quota: { ...quota, used: quota.used + chars },

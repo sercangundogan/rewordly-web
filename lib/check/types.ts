@@ -25,6 +25,8 @@ export interface CheckIssue {
   replacements: string[];
   message: string;
   type: IssueType;
+  /** Opaque id of this suggestion, set by the API; the client sends it back when the suggestion is ignored. */
+  fp?: string;
 }
 
 export interface CheckParagraphResult {

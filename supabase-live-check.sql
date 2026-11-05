@@ -74,5 +74,78 @@ AS $$
 $$;
 REVOKE ALL ON FUNCTION public.ai_spend_today(TEXT) FROM PUBLIC, anon, authenticated;
 
--- Optional housekeeping (run occasionally, or schedule with pg_cron):
--- DELETE FROM public.check_cache WHERE created_at < now() - interval '60 days';
+-- 4. Cache lifetime. The API ignores check_cache rows older than CHECK_CACHE_TTL_DAYS (default 30)
+--    and rewrites them with a fresh created_at; this removes the leftovers so the table does not grow.
+CREATE OR REPLACE FUNCTION public.purge_check_cache(p_days INTEGER DEFAULT 30)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE removed INTEGER;
+BEGIN
+  DELETE FROM public.check_cache WHERE created_at < now() - make_interval(days => p_days);
+  GET DIAGNOSTICS removed = ROW_COUNT;
+  DELETE FROM public.check_feedback WHERE created_at < now() - interval '90 days';
+  RETURN removed;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.purge_check_cache(INTEGER) FROM PUBLIC, anon, authenticated;
+
+-- 5. Suggestions people keep ignoring.
+--    fp = sha1 of (sentence, position, original, replacement), computed by the API and handed to the
+--    extension with each issue; no text is stored. One vote per identity. When enough different
+--    identities ignored the same suggestion it lands in check_suppressions and is no longer returned.
+--    Delete a row from check_suppressions to bring a suggestion back.
+CREATE TABLE IF NOT EXISTS public.check_feedback (
+  fp TEXT NOT NULL,
+  identity TEXT NOT NULL,                  -- 'user:<uuid>' | 'anon:<anonymous id>'
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (fp, identity)
+);
+ALTER TABLE public.check_feedback ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role only check_feedback" ON public.check_feedback;
+CREATE POLICY "Service role only check_feedback" ON public.check_feedback FOR ALL USING (false);
+
+CREATE TABLE IF NOT EXISTS public.check_suppressions (
+  fp TEXT PRIMARY KEY,
+  votes INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+ALTER TABLE public.check_suppressions ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Service role only check_suppressions" ON public.check_suppressions;
+CREATE POLICY "Service role only check_suppressions" ON public.check_suppressions FOR ALL USING (false);
+
+-- Records one identity's ignore for each fingerprint and suppresses those that reached the threshold.
+CREATE OR REPLACE FUNCTION public.add_check_feedback(p_identity TEXT, p_fps TEXT[], p_min_users INTEGER)
+RETURNS INTEGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE suppressed INTEGER;
+BEGIN
+  INSERT INTO public.check_feedback (fp, identity)
+  SELECT DISTINCT unnest(p_fps), p_identity
+  ON CONFLICT DO NOTHING;
+
+  INSERT INTO public.check_suppressions (fp, votes)
+  SELECT fp, count(*) FROM public.check_feedback
+  WHERE fp = ANY (p_fps)
+  GROUP BY fp
+  HAVING count(*) >= p_min_users
+  ON CONFLICT (fp) DO UPDATE SET votes = EXCLUDED.votes;
+  GET DIAGNOSTICS suppressed = ROW_COUNT;
+  RETURN suppressed;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.add_check_feedback(TEXT, TEXT[], INTEGER) FROM PUBLIC, anon, authenticated;
+
+-- Weekly cleanup (Sundays 03:00 UTC) with pg_cron. If pg_cron is not enabled yet (Database > Extensions),
+-- this only prints a notice; run `SELECT public.purge_check_cache();` by hand now and then instead.
+DO $$
+BEGIN
+  PERFORM cron.schedule('purge-check-cache', '0 3 * * 0', 'SELECT public.purge_check_cache(30)');
+EXCEPTION WHEN OTHERS THEN
+  RAISE NOTICE 'pg_cron is not available, skipping the schedule: %', SQLERRM;
+END $$;
