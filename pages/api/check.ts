@@ -138,11 +138,13 @@ export default async function handler(
       return;
     }
 
-    const { results: fresh, usage } = await checkWithModel(pending);
+    const { results: fresh, usage, judge } = await checkWithModel(pending);
     const chars = pending.reduce((sum, p) => sum + p.text.length, 0);
     await Promise.all([
       recordQuota(tier, identity, ipId, chars),
       logUsage({ identity, tier, model: LIVE_CHECK_MODEL, chars, usage, host: normalizeHost((req.body as { host?: unknown }).host) }),
+      // The judge's cost counts towards the daily budget too (same feature, its own model).
+      judge ? logUsage({ identity, tier, model: judge.model, chars: 0, usage: judge.usage, host: normalizeHost((req.body as { host?: unknown }).host) }) : Promise.resolve(),
     ]);
 
     const byId = new Map([...cached, ...fresh].map((r) => [r.id, r]));
