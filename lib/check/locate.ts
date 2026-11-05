@@ -9,12 +9,19 @@ import type { CheckIssue, RawIssue } from './types';
  * that cannot be found, change nothing, or overlap an earlier issue are dropped:
  * a missing underline is far better than one in the wrong place.
  */
+/** ’ ‘ ` ´ → ' and “ ” → ": typographic and plain quotes are the same character to a writer. */
+export function normalizeQuotes(s: string): string {
+  return s.replace(/[’‘`´ʼ]/g, "'").replace(/[“”]/g, '"');
+}
+
 export function locateIssues(text: string, raw: RawIssue[]): CheckIssue[] {
   const located: CheckIssue[] = [];
   const shielded = protectedRanges(text);
 
   for (const issue of raw) {
     if (!issue.original || issue.original === issue.replacement) continue;
+    // "Deploy’u" → "Deploy'u" only swaps the apostrophe style: nothing the user got wrong.
+    if (normalizeQuotes(issue.original) === normalizeQuotes(issue.replacement)) continue;
 
     const offset = findOffset(text, issue.original, issue.before);
     if (offset < 0) continue;

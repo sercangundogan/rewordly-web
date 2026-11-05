@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expandToWord, findOffset, locateIssues, trimToChangedWords } from './locate';
+import { expandToWord, findOffset, locateIssues, normalizeQuotes, trimToChangedWords } from './locate';
 import type { RawIssue } from './types';
 
 function issue(original: string, replacement: string, before = ''): RawIssue {
@@ -142,5 +142,14 @@ describe('locateIssues: suggestions that repeat the next words', () => {
       { original: 'yanlışın', before: 'bence', replacement: 'yanlışın var', message: '', type: 'grammar' },
     ]);
     expect(located.map((i) => i.replacements[0])).toEqual(['yanlışın var']);
+  });
+});
+
+describe('locateIssues: changes that are not mistakes', () => {
+  it('drops a suggestion that only swaps the apostrophe style', () => {
+    const text = 'Deploy’u yarın sabah yapacağız.';
+    const located = locateIssues(text, [{ original: 'Deploy’u', before: '', replacement: "Deploy'u", message: '', type: 'punctuation' }]);
+    expect(located).toEqual([]);
+    expect(normalizeQuotes('it’s “ok”')).toBe('it\'s "ok"');
   });
 });
