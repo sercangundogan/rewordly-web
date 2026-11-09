@@ -11,7 +11,10 @@ const PRICING: Record<string, { input: number; cachedInput: number; output: numb
   'gpt-4o-mini': { input: 0.15, cachedInput: 0.075, output: 0.6 },
   'gpt-4.1-mini': { input: 0.4, cachedInput: 0.1, output: 1.6 },
   'gpt-5-mini': { input: 0.25, cachedInput: 0.025, output: 2 },
+  'gpt-4o': { input: 2.5, cachedInput: 1.25, output: 10 },
 };
+/** A model missing above is counted at the most expensive price we know, never as free. */
+const UNKNOWN_MODEL_PRICE = PRICING['gpt-4o']!;
 
 export interface TokenUsage {
   inputTokens: number;
@@ -20,8 +23,7 @@ export interface TokenUsage {
 }
 
 export function costUsd(model: string, usage: TokenUsage): number {
-  const price = PRICING[model];
-  if (!price) return 0;
+  const price = PRICING[model] ?? UNKNOWN_MODEL_PRICE;
   const uncached = Math.max(0, usage.inputTokens - usage.cachedInputTokens);
   return (uncached * price.input + usage.cachedInputTokens * price.cachedInput + usage.outputTokens * price.output) / 1e6;
 }
@@ -34,11 +36,17 @@ export async function logUsage(entry: {
   usage: TokenUsage;
   /** Site the check came from (normalized hostname), when the extension sent one. */
   host?: string | null;
+  /** Defaults to 'live_check'. The older endpoints log as 'rewrite', 'grammar' and 'proactive_check'. */
+  feature?: string;
 }): Promise<void> {
+  // A failed call that never reached the model spent nothing: no row.
+  if (entry.usage.inputTokens + entry.usage.outputTokens === 0) return;
   const cost = costUsd(entry.model, entry.usage);
-  spentToday.value += cost;
+  const feature = entry.feature ?? 'live_check';
+  if (feature === 'live_check') spentToday.value += cost;
+  else legacySpent.value += cost;
   const row = {
-    feature: 'live_check',
+    feature,
     identity: entry.identity,
     tier: entry.tier,
     model: entry.model,
@@ -76,4 +84,38 @@ export async function isBudgetExhausted(): Promise<boolean> {
     spentToday.fetchedAt = Date.now();
   }
   return spentToday.value >= budget;
+}
+
+/**
+ * Same guard for the older endpoints (rewrite, grammar, proactive check), with its own budget
+ * (LEGACY_DAILY_BUDGET_USD, default $2): free and anonymous use pauses until the next UTC day.
+ */
+export const LEGACY_FEATURES = ['rewrite', 'grammar', 'proactive_check'] as const;
+const legacySpent = { value: 0, day: '', fetchedAt: 0 };
+
+export async function isLegacyBudgetExhausted(): Promise<boolean> {
+  const budget = Number(process.env.LEGACY_DAILY_BUDGET_USD ?? 2);
+  if (!Number.isFinite(budget) || budget <= 0) return false;
+
+  const day = new Date().toISOString().slice(0, 10);
+  if (legacySpent.day !== day || Date.now() - legacySpent.fetchedAt > BUDGET_REFRESH_MS) {
+    const totals = await Promise.all(
+      LEGACY_FEATURES.map((feature) => getSupabaseAdmin().rpc('ai_spend_today', { p_feature: feature }))
+    );
+    if (totals.every((t) => !t.error)) legacySpent.value = totals.reduce((sum, t) => sum + Number(t.data ?? 0), 0);
+    else if (legacySpent.day !== day) legacySpent.value = 0;
+    legacySpent.day = day;
+    legacySpent.fetchedAt = Date.now();
+  }
+  return legacySpent.value >= budget;
+}
+
+/** For tests. */
+export function resetBudgetCache(): void {
+  spentToday.value = 0;
+  spentToday.day = '';
+  spentToday.fetchedAt = 0;
+  legacySpent.value = 0;
+  legacySpent.day = '';
+  legacySpent.fetchedAt = 0;
 }

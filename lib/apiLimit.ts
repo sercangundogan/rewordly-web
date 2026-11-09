@@ -1,7 +1,8 @@
-import { NextApiResponse } from 'next';
+import type { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthFromRequest } from './auth';
 import { getUsage, incrementUsage, canUse, getLimitInfo } from './usage';
 import type { LimitTier } from './limits';
+import { blockedReason, blockedResponse, guardContext, type GuardContext } from './legacyGuard';
 
 export interface LimitCheckResult {
   allowed: boolean;
@@ -9,6 +10,8 @@ export interface LimitCheckResult {
   anonymousId: string | undefined;
   tier: LimitTier;
   type: 'rewrite' | 'grammar';
+  /** For the cost guards in lib/legacyGuard.ts (countCall, spendTracker). */
+  guard: GuardContext;
 }
 
 /**
@@ -16,7 +19,7 @@ export interface LimitCheckResult {
  * If allowed, return identity info for later incrementUsage.
  */
 export async function checkLimitAndMaybeRespond(
-  req: { headers: { authorization?: string; 'x-anonymous-id'?: string } },
+  req: Pick<NextApiRequest, 'headers' | 'socket'>,
   res: NextApiResponse,
   type: 'rewrite' | 'grammar'
 ): Promise<LimitCheckResult | null> {
@@ -43,7 +46,19 @@ export async function checkLimitAndMaybeRespond(
     return null;
   }
 
-  return { allowed: true, userId, anonymousId, tier, type };
+  // The per-identity limit above is per client-chosen id; these count per IP and against the day's budget.
+  const guard = guardContext(req, userId, anonymousId, tier);
+  const blocked = await blockedReason(guard, type);
+  if (blocked) {
+    res.status(402).json({
+      ...blockedResponse(blocked, tier),
+      rewriteUsed: usage.rewrite,
+      grammarUsed: usage.grammar,
+    });
+    return null;
+  }
+
+  return { allowed: true, userId, anonymousId, tier, type, guard };
 }
 
 /**

@@ -1,12 +1,13 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { getAuthFromRequest } from '../../lib/auth';
-import { checkWithModel, lookupCached, LIVE_CHECK_MODEL } from '../../lib/check/llm';
+import { CheckFailure, checkWithModel, lookupCached, LIVE_CHECK_MODEL } from '../../lib/check/llm';
 import { getQuota, ipIdentity, isIpOverLimit, quotaIdentity, recordQuota, type QuotaState } from '../../lib/check/quota';
 import { isBudgetExhausted, logUsage } from '../../lib/check/costs';
 import type { CheckParagraph, CheckParagraphResult } from '../../lib/check/types';
 import type { ApiError } from '../../lib/openai';
 import { normalizeHost } from '../../lib/metrics';
 import { decorateResults } from '../../lib/check/feedback';
+import { clientIp } from '../../lib/legacyGuard';
 
 const MAX_PARAGRAPHS = 30;
 const MAX_PARAGRAPH_LENGTH = 3000;
@@ -35,16 +36,20 @@ interface LimitResponse {
   quota: QuotaState | null;
 }
 
-function parseParagraphs(body: unknown): CheckParagraph[] | string {
+export function parseParagraphs(body: unknown): CheckParagraph[] | string {
   const paragraphs = (body as { paragraphs?: unknown } | null)?.paragraphs;
   if (!Array.isArray(paragraphs) || paragraphs.length === 0) return 'paragraphs must be a non-empty array';
   if (paragraphs.length > MAX_PARAGRAPHS) return `At most ${MAX_PARAGRAPHS} paragraphs per request`;
 
   let total = 0;
   const parsed: CheckParagraph[] = [];
+  const ids = new Set<string>();
   for (const p of paragraphs) {
     const { id, text } = (p ?? {}) as { id?: unknown; text?: unknown };
     if (typeof id !== 'string' || !id || id.length > 64) return 'Each paragraph needs a string id (max 64 chars)';
+    // Results are matched by id: two paragraphs sharing one would get each other's issues, and the shared cache stores them.
+    if (ids.has(id)) return 'Paragraph ids must be unique';
+    ids.add(id);
     if (typeof text !== 'string' || !text.trim()) return 'Each paragraph needs non-empty text';
     if (text.length > MAX_PARAGRAPH_LENGTH) return `Paragraph too long (max ${MAX_PARAGRAPH_LENGTH} chars)`;
     total += text.length;
@@ -54,11 +59,6 @@ function parseParagraphs(body: unknown): CheckParagraph[] | string {
   return parsed;
 }
 
-function clientIp(req: NextApiRequest): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
-  return first || req.socket.remoteAddress || 'unknown';
-}
 
 /**
  * Live check-as-you-type endpoint used by the extension's underline feature.
@@ -141,7 +141,21 @@ export default async function handler(
       return;
     }
 
-    const { results: fresh, usage, judge } = await checkWithModel(pending);
+    let checked: Awaited<ReturnType<typeof checkWithModel>>;
+    try {
+      checked = await checkWithModel(pending);
+    } catch (error) {
+      // A failed check that already spent tokens still counts towards the daily budget (the user is not charged).
+      if (error instanceof CheckFailure) {
+        const host = normalizeHost((req.body as { host?: unknown }).host);
+        await Promise.all([
+          logUsage({ identity, tier, model: LIVE_CHECK_MODEL, chars: 0, usage: error.usage, host }),
+          error.judge ? logUsage({ identity, tier, model: error.judge.model, chars: 0, usage: error.judge.usage, host }) : Promise.resolve(),
+        ]);
+      }
+      throw error;
+    }
+    const { results: fresh, usage, judge } = checked;
     const chars = pending.reduce((sum, p) => sum + p.text.length, 0);
     await Promise.all([
       recordQuota(tier, identity, ipId, chars),

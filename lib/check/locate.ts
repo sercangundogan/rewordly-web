@@ -14,12 +14,33 @@ export function normalizeQuotes(s: string): string {
   return s.replace(/[’‘`´ʼ]/g, "'").replace(/[“”]/g, '"');
 }
 
+/** Things a correction must not bring along: links, addresses, markup, invisible control and direction characters. */
+const SMUGGLED = [
+  /https?:\/\/|www\.|\b[\w-]+\.(?:com|net|org|io|co|ru|cn|xyz|top|info|biz|app|dev)\b\/?/i,
+  /[\w.+-]+@[\w-]+\.[\w.]+/,
+  /<\/?[a-z!][^>]*>|\]\(|javascript:|data:text/i,
+  /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u200B-\u200F\u202A-\u202E\u2066-\u2069\uFEFF]/,
+];
+
+/**
+ * A correction fixes a few words; it does not write new text. The model reads whatever is in the
+ * field, including a quoted email or a pasted page, and text in there can tell it what to answer.
+ * So a replacement that is much longer than what it replaces, or that brings a link, an address, markup
+ * or hidden characters the original did not have, is dropped instead of being offered for one click.
+ */
+export function isPlausibleReplacement(original: string, replacement: string): boolean {
+  if (replacement.length > Math.max(60, original.length * 3)) return false;
+  if (!original.includes('\n') && replacement.includes('\n')) return false;
+  return !SMUGGLED.some((pattern) => pattern.test(replacement) && !pattern.test(original));
+}
+
 export function locateIssues(text: string, raw: RawIssue[]): CheckIssue[] {
   const located: CheckIssue[] = [];
   const shielded = protectedRanges(text);
 
   for (const issue of raw) {
     if (!issue.original || issue.original === issue.replacement) continue;
+    if (!isPlausibleReplacement(issue.original, issue.replacement)) continue;
     // "Deploy’u" → "Deploy'u" only swaps the apostrophe style: nothing the user got wrong.
     if (normalizeQuotes(issue.original) === normalizeQuotes(issue.replacement)) continue;
 
