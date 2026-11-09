@@ -98,6 +98,25 @@ const RESPONSE_SCHEMA = {
   },
 } as const;
 
+/**
+ * A check that failed after the model was already paid for (a looping answer, an unusable one, a
+ * judge that did not answer). Carries the tokens spent so the caller can still log them: a failure
+ * that costs money but never reaches the budget guard would be a hole in it.
+ */
+export class CheckFailure extends Error {
+  constructor(
+    message: string,
+    readonly usage: TokenUsage,
+    readonly judge?: { model: string; usage: TokenUsage }
+  ) {
+    super(message);
+    this.name = 'CheckFailure';
+  }
+}
+
+/** Past this, another attempt is not started: the platform would cut the request off and the spend would go unlogged. */
+const ATTEMPTS_DEADLINE_MS = 20_000;
+
 interface ModelOutput {
   r: Array<{ id: string; lang: string; issues: Array<{ o: string; b: string; r: string; m: string; t: RawIssue['type'] }> }>;
 }
@@ -189,22 +208,37 @@ export async function lookupCached(paragraphs: CheckParagraph[]): Promise<CheckO
   return { results, pending };
 }
 
-/** Checks uncached paragraphs with the model, caches the results and reports token usage. */
+/** Checks uncached paragraphs with the model, caches the results and reports token usage. Failures are CheckFailure. */
 export async function checkWithModel(
   paragraphs: CheckParagraph[]
 ): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage } }> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
+  const usage: TokenUsage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 };
+  const judgeSpent: { value: { model: string; usage: TokenUsage } | undefined } = { value: undefined };
+  try {
+    return await runCheck(paragraphs, usage, judgeSpent);
+  } catch (error) {
+    throw new CheckFailure(error instanceof Error ? error.message : 'Check failed', usage, judgeSpent.value);
+  }
+}
+
+async function runCheck(
+  paragraphs: CheckParagraph[],
+  usage: TokenUsage,
+  judgeSpent: { value: { model: string; usage: TokenUsage } | undefined }
+): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage } }> {
 
   // The model sometimes repeats the same result object until it runs out of tokens, which leaves broken
   // JSON (seen on short inputs, about one call in forty, and the same input does it again at temperature 0).
   // So: a token cap that fits the input (a loop ends early and cheap), and up to two more tries a little
   // less deterministic. Every attempt's tokens are counted.
   let output: ModelOutput | null = null;
-  const usage: TokenUsage = { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 };
+  const started = Date.now();
   try {
     for (let attempt = 0; attempt < 3 && !output; attempt++) {
+      if (attempt > 0 && Date.now() - started > ATTEMPTS_DEADLINE_MS) break;
       const completion = await openai.chat.completions.create(
         {
           model: LIVE_CHECK_MODEL,
@@ -261,7 +295,10 @@ export async function checkWithModel(
   let judge: { model: string; usage: TokenUsage } | undefined;
   const toJudge = staged.filter((s) => s.value.issues.length > 0);
   if (JUDGE_ENABLED && toJudge.length > 0) {
-    const judged = await judgeIssues(toJudge.map((s) => ({ id: s.p.id, text: s.p.text, edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })) })));
+    const judged = await judgeIssues(toJudge.map((s) => ({ id: s.p.id, text: s.p.text, edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })) })), (spent) => {
+      // Known as soon as the reply arrives, so it is still reported when the reply turns out to be unusable.
+      judgeSpent.value = { model: JUDGE_MODEL, usage: spent };
+    });
     judge = { model: JUDGE_MODEL, usage: judged.usage };
     for (const s of toJudge) s.value.issues = approved(s.p.id, s.value.issues, judged.verdicts);
   }
@@ -278,7 +315,10 @@ export async function checkWithModel(
   return { results, usage, ...(judge ? { judge } : {}) };
 }
 
-async function judgeIssues(items: Array<{ id: string; text: string; edits: Array<{ i: number; o: string; r: string; m: string }> }>): Promise<{ verdicts: JudgeVerdict[]; usage: TokenUsage }> {
+async function judgeIssues(
+  items: Array<{ id: string; text: string; edits: Array<{ i: number; o: string; r: string; m: string }> }>,
+  spent: (usage: TokenUsage) => void
+): Promise<{ verdicts: JudgeVerdict[]; usage: TokenUsage }> {
   const reasoning = JUDGE_MODEL.startsWith('gpt-5') || JUDGE_MODEL.startsWith('o');
   try {
     const completion = await openai.chat.completions.create(
@@ -293,16 +333,17 @@ async function judgeIssues(items: Array<{ id: string; text: string; edits: Array
       } as Parameters<typeof openai.chat.completions.create>[0],
       { timeout: 20000, maxRetries: 1 }
     ) as OpenAI.Chat.Completions.ChatCompletion;
+    const usage: TokenUsage = {
+      inputTokens: completion.usage?.prompt_tokens ?? 0,
+      cachedInputTokens: completion.usage?.prompt_tokens_details?.cached_tokens ?? 0,
+      outputTokens: completion.usage?.completion_tokens ?? 0,
+    };
+    spent(usage);
     const raw = completion.choices[0]?.message?.content;
     if (!raw) throw new Error('No response received from the judge');
-    return {
-      verdicts: (JSON.parse(raw) as { v: JudgeVerdict[] }).v,
-      usage: {
-        inputTokens: completion.usage?.prompt_tokens ?? 0,
-        cachedInputTokens: completion.usage?.prompt_tokens_details?.cached_tokens ?? 0,
-        outputTokens: completion.usage?.completion_tokens ?? 0,
-      },
-    };
+    const verdicts = (JSON.parse(raw) as { v?: JudgeVerdict[] }).v;
+    if (!Array.isArray(verdicts)) throw new Error('The judge returned unusable output');
+    return { verdicts, usage };
   } catch (error) {
     if (error instanceof OpenAI.APIError) throw new Error(`OpenAI judge error: ${error.message}`);
     throw error;

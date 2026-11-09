@@ -1,4 +1,4 @@
-import { createHash } from 'crypto';
+import { createHmac } from 'crypto';
 import { getSupabaseAdmin } from '../supabase';
 import type { CheckIssue, CheckParagraph, CheckParagraphResult } from './types';
 
@@ -17,8 +17,16 @@ export const MIN_USERS = Math.max(2, Number(process.env.CHECK_SUPPRESS_MIN_USERS
 const FP = /^[0-9a-f]{40}$/;
 const MAX_FPS = 20;
 
+/**
+ * Keyed, so nobody can work out a suggestion's fingerprint offline and vote for it: it has to come
+ * from a check (which costs quota). Changing the secret only resets the votes.
+ */
+function fingerprintKey(): string {
+  return process.env.IP_HASH_SALT || process.env.SUPABASE_SERVICE_ROLE_KEY || 'rewordly';
+}
+
 export function issueFingerprint(text: string, issue: Pick<CheckIssue, 'offset' | 'original' | 'replacements'>): string {
-  return createHash('sha1').update(`${text}\n${issue.offset}\n${issue.original}\n${issue.replacements[0] ?? ''}`).digest('hex');
+  return createHmac('sha1', fingerprintKey()).update(`${text}\n${issue.offset}\n${issue.original}\n${issue.replacements[0] ?? ''}`).digest('hex');
 }
 
 /** Valid, distinct fingerprints from a client batch. */

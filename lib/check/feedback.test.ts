@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 let suppressedRows: Array<{ fp: string }> = [];
@@ -27,6 +28,20 @@ describe('issueFingerprint', () => {
     expect(issueFingerprint('Merge the review!', issue(10, 'review', 'inceleme'))).not.toBe(base);
     expect(issueFingerprint('Merge the review.', issue(11, 'review', 'inceleme'))).not.toBe(base);
     expect(issueFingerprint('Merge the review.', issue(10, 'review', 'gözden geçirme'))).not.toBe(base);
+  });
+});
+
+describe('issueFingerprint: keyed', () => {
+  it('cannot be computed without the server secret, so votes cannot be forged offline', async () => {
+    const forged = createHash('sha1').update('Merge the review.\n10\nreview\ninceleme').digest('hex');
+    expect(issueFingerprint('Merge the review.', issue(10, 'review', 'inceleme'))).not.toBe(forged);
+  });
+
+  it('changes with the secret (rotating it only resets the votes)', async () => {
+    const before = issueFingerprint('Some text.', issue(0, 'Some', 'Any'));
+    vi.stubEnv('IP_HASH_SALT', 'another-secret');
+    expect(issueFingerprint('Some text.', issue(0, 'Some', 'Any'))).not.toBe(before);
+    vi.unstubAllEnvs();
   });
 });
 

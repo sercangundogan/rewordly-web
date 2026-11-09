@@ -40,9 +40,29 @@ function periodKey(period: QuotaPeriod, now = new Date()): string {
   return period === 'day' ? iso.slice(0, 10) : iso.slice(0, 7);
 }
 
+/** What the extension generates is 32 hex characters; anything else (or an endless header) is not stored as an identity. */
+const ANONYMOUS_ID = /^[A-Za-z0-9_-]{8,64}$/;
+
+/** The anonymous id when it looks like one the extension made, else 'unknown' (one shared identity). */
+export function validAnonymousId(anonymousId: string | undefined): string {
+  return anonymousId && ANONYMOUS_ID.test(anonymousId) ? anonymousId : 'unknown';
+}
+
 export function quotaIdentity(userId: string | null, anonymousId: string | undefined): string {
   if (userId) return `user:${userId}`;
-  return `anon:${anonymousId || 'unknown'}`;
+  return `anon:${validAnonymousId(anonymousId)}`;
+}
+
+/**
+ * A plain daily counter on the same table (auto_quota), for limits counted in requests rather than
+ * characters. `name` keeps counters apart, e.g. 'rewrite'. The add is atomic in the database.
+ */
+export async function readDailyCount(identity: string, name: string): Promise<number> {
+  return readChars(identity, `${periodKey('day')}:${name}`);
+}
+
+export async function addDailyCount(identity: string, name: string): Promise<void> {
+  await addChars(identity, `${periodKey('day')}:${name}`, 1);
 }
 
 /** Salted so raw IPs are never stored. */

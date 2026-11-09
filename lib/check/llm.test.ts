@@ -1,9 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // A scripted OpenAI client: each call takes the next reply.
-const replies: Array<{ finish: string; content: string; out?: number }> = [];
+const replies: Array<{ finish: string; content: string; out?: number; takes?: number }> = [];
 const create = vi.fn(async () => {
   const next = replies.shift()!;
+  // A slow call: moves the clock (only Date is faked in the tests that use it).
+  if (next.takes) vi.setSystemTime(Date.now() + next.takes);
   return {
     choices: [{ finish_reason: next.finish, message: { content: next.content } }],
     usage: { prompt_tokens: 100, completion_tokens: next.out ?? 20, prompt_tokens_details: { cached_tokens: 0 } },
@@ -62,6 +64,58 @@ describe('checkWithModel: a model that repeats itself until it is cut off', () =
     replies.push({ finish: 'length', content: LOOPING }, { finish: 'length', content: LOOPING }, { finish: 'length', content: LOOPING });
     await expect(run()).rejects.toThrow('unusable output');
     expect(create).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('a failed check still reports what it cost', () => {
+  beforeEach(() => {
+    replies.length = 0;
+    create.mockClear();
+    upsert.mockClear();
+    vi.unstubAllEnvs();
+  });
+
+  async function runWithJudge() {
+    vi.stubEnv('OPENAI_API_KEY', 'test');
+    vi.stubEnv('LIVE_CHECK_JUDGE_MODEL', 'gpt-5-mini');
+    vi.resetModules();
+    return import('./llm');
+  }
+
+  it('three looping attempts: every attempt is in the failure, so the budget guard sees it', async () => {
+    replies.push({ finish: 'length', content: LOOPING, out: 450 }, { finish: 'length', content: LOOPING, out: 450 }, { finish: 'length', content: LOOPING, out: 450 });
+    const error = (await run().catch((e) => e)) as InstanceType<Awaited<typeof import('./llm')>['CheckFailure']>;
+    expect(error.name).toBe('CheckFailure');
+    expect(error.usage).toEqual({ inputTokens: 300, cachedInputTokens: 0, outputTokens: 1350 });
+    expect(error.judge).toBeUndefined();
+  });
+
+  it('a judge that answers with garbage: the judge call is reported too, and nothing is cached', async () => {
+    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: 'not json', out: 7 });
+    const { checkWithModel, CheckFailure } = await runWithJudge();
+    const error = (await checkWithModel([{ id: 'a', text: 'I know teh answer.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
+    expect(error).toBeInstanceOf(CheckFailure);
+    expect(error.usage.inputTokens).toBe(100);
+    expect(error.judge).toEqual({ model: 'gpt-5-mini', usage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 7 } });
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it('a judge reply without verdicts is a failure, not "everything approved"', async () => {
+    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: '{}' });
+    const { checkWithModel } = await runWithJudge();
+    await expect(checkWithModel([{ id: 'a', text: 'I know teh answer.' }])).rejects.toThrow('unusable output');
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it('after a slow first attempt no further attempt is started (the platform would cut the request off unlogged)', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      replies.push({ finish: 'length', content: LOOPING, takes: 25_000 }, { finish: 'stop', content: GOOD });
+      await expect(run()).rejects.toThrow('unusable output');
+      expect(create).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
