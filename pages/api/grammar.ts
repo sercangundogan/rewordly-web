@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { checkGrammarWithOpenAI } from '../../lib/services/grammarService';
 import { GrammarRequest, GrammarCheckResponse, ApiError } from '../../lib/types/grammar';
 import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
+import { countCall, spendTracker } from '../../lib/legacyGuard';
 import { getFeaturesForTier } from '../../lib/features';
 
 const corsHeaders = {
@@ -59,8 +60,14 @@ export default async function handler(
     }
 
     const features = getFeaturesForTier(limitResult.tier);
-    const result = await checkGrammarWithOpenAI(text, { model: features.model });
-    await recordUsage(limitResult.userId, limitResult.anonymousId, 'grammar');
+    const spend = spendTracker(limitResult.guard, 'grammar', text.length);
+    let result: Awaited<ReturnType<typeof checkGrammarWithOpenAI>>;
+    try {
+      result = await checkGrammarWithOpenAI(text, { model: features.model, onUsage: spend.onUsage });
+    } finally {
+      await spend.flush();
+    }
+    await Promise.all([recordUsage(limitResult.userId, limitResult.anonymousId, 'grammar'), countCall(limitResult.guard, 'grammar')]);
     res.status(200).json(result);
   } catch (error) {
     console.error('API Error:', error);

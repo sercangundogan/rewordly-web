@@ -2,6 +2,10 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { rewriteText, RewriteRequest, RewriteResponse, ApiError, RewriteTone } from '../../lib/openai';
 import { checkLimitAndMaybeRespond, recordUsage } from '../../lib/apiLimit';
 import { getFeaturesForTier } from '../../lib/features';
+import { countCall, spendTracker } from '../../lib/legacyGuard';
+
+/** Same as grammar: a rewrite of a whole page costs as much as hundreds of normal ones. */
+const MAX_TEXT_LENGTH = 10000;
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,15 +56,30 @@ export default async function handler(
       return;
     }
 
+    if (text.length > MAX_TEXT_LENGTH) {
+      res.status(400).json({
+        error: 'Bad Request',
+        message: 'Text is too long. Maximum length is 10,000 characters.'
+      });
+      return;
+    }
+
     const validTones: RewriteTone[] = ['standard', 'formal', 'casual', 'concise', 'elaborate'];
     const safeTone: RewriteTone = tone && validTones.includes(tone) ? tone : 'standard';
 
     const features = getFeaturesForTier(limitResult.tier);
-    const result = await rewriteText(text, safeTone, {
-      model: features.model,
-      variants: features.rewriteVariants,
-    });
-    await recordUsage(limitResult.userId, limitResult.anonymousId, 'rewrite');
+    const spend = spendTracker(limitResult.guard, 'rewrite', text.length);
+    let result: RewriteResponse;
+    try {
+      result = await rewriteText(text, safeTone, {
+        model: features.model,
+        variants: features.rewriteVariants,
+        onUsage: spend.onUsage,
+      });
+    } finally {
+      await spend.flush();
+    }
+    await Promise.all([recordUsage(limitResult.userId, limitResult.anonymousId, 'rewrite'), countCall(limitResult.guard, 'rewrite')]);
     res.status(200).json(result);
   } catch (error) {
     console.error('API Error:', error);

@@ -1,4 +1,5 @@
 import OpenAI from 'openai';
+import type { TokenUsage } from './check/costs';
 
 // Initialize OpenAI client
 const openai = new OpenAI({
@@ -25,6 +26,19 @@ export interface CompletionOptions {
   variants?: number;
   /** User-defined style instruction (Pro). Overrides the tone prompts. */
   customPrompt?: string;
+  /** Called with the tokens a completion used, as soon as it returns (also when its answer turns out unusable). */
+  onUsage?: (usage: TokenUsage, model: string) => void;
+}
+
+function report(options: CompletionOptions, model: string, completion: OpenAI.Chat.Completions.ChatCompletion): void {
+  options.onUsage?.(
+    {
+      inputTokens: completion.usage?.prompt_tokens ?? 0,
+      cachedInputTokens: completion.usage?.prompt_tokens_details?.cached_tokens ?? 0,
+      outputTokens: completion.usage?.completion_tokens ?? 0,
+    },
+    model
+  );
 }
 
 const DEFAULT_MODEL = 'gpt-4o-mini';
@@ -97,6 +111,7 @@ export async function rewriteText(
       // Slightly higher temperature when generating alternatives so they actually differ
       temperature: n > 1 ? 0.9 : safeTone === 'concise' ? 0.5 : 0.7,
     });
+    report(options, model, completion);
 
     const variants: string[] = [];
     for (const choice of completion.choices) {
@@ -133,7 +148,7 @@ export interface ProactiveCheckResponse {
  * (check-while-typing) feature. Always uses the fast/cheap model since
  * it runs in the background on every typing pause.
  */
-export async function proactiveCheck(text: string): Promise<ProactiveCheckResponse> {
+export async function proactiveCheck(text: string, options: Pick<CompletionOptions, 'onUsage'> = {}): Promise<ProactiveCheckResponse> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
@@ -163,6 +178,7 @@ export async function proactiveCheck(text: string): Promise<ProactiveCheckRespon
       max_tokens: 1200,
       temperature: 0,
     });
+    report(options, DEFAULT_MODEL, completion);
 
     const raw = completion.choices[0]?.message?.content;
     if (!raw) {
@@ -238,6 +254,7 @@ export async function correctGrammar(
       max_tokens: 1000,
       temperature: 0.3, // Lower temperature for more conservative corrections
     });
+    report(options, options.model || DEFAULT_MODEL, completion);
 
     const corrected = completion.choices[0]?.message?.content;
     

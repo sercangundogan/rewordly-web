@@ -4,6 +4,7 @@ import { getAuthFromRequest } from '../../lib/auth';
 import { getFeaturesForTier } from '../../lib/features';
 import { recordUsage } from '../../lib/apiLimit';
 import { getUsage, canUse } from '../../lib/usage';
+import { blockedReason, blockedResponse, countCall, guardContext, spendTracker } from '../../lib/legacyGuard';
 
 const MAX_TEXT_LENGTH = 5000;
 
@@ -83,8 +84,23 @@ export default async function handler(
       return;
     }
 
+    const guard = guardContext(req, userId, anonymousId, tier);
+    const blocked = await blockedReason(guard, 'proactive_check');
+    if (blocked) {
+      res.status(402).json(blockedResponse(blocked, tier));
+      return;
+    }
+    const spend = spendTracker(guard, 'proactive_check', text.length);
+    const check = async () => {
+      try {
+        return await proactiveCheck(text, { onUsage: spend.onUsage });
+      } finally {
+        await Promise.all([spend.flush(), countCall(guard, 'proactive_check')]);
+      }
+    };
+
     if (isPro) {
-      const result = await proactiveCheck(text);
+      const result = await check();
       // Pro is unlimited; recorded only so usage stays visible in analytics.
       await recordUsage(userId, anonymousId, 'grammar');
       res.status(200).json(result);
@@ -104,7 +120,7 @@ export default async function handler(
       return;
     }
 
-    const result = await proactiveCheck(text);
+    const result = await check();
     if (result.hasIssues) {
       // Only checks that surface a teaser badge consume the daily grammar limit.
       await recordUsage(userId, anonymousId, 'grammar');

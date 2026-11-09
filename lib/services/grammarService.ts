@@ -6,7 +6,7 @@ import { GrammarCheckResponse } from '../types/grammar';
  */
 export async function checkGrammarWithOpenAI(
   text: string,
-  options: { model?: string } = {}
+  options: Pick<import('../openai').CompletionOptions, 'model' | 'onUsage'> = {}
 ): Promise<GrammarCheckResponse> {
   const { correctGrammar } = await import('../openai');
   const result = await correctGrammar(text, options);

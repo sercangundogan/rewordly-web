@@ -7,6 +7,7 @@ import type { CheckParagraph, CheckParagraphResult } from '../../lib/check/types
 import type { ApiError } from '../../lib/openai';
 import { normalizeHost } from '../../lib/metrics';
 import { decorateResults } from '../../lib/check/feedback';
+import { clientIp } from '../../lib/legacyGuard';
 
 const MAX_PARAGRAPHS = 30;
 const MAX_PARAGRAPH_LENGTH = 3000;
@@ -33,12 +34,6 @@ interface LimitResponse {
   /** Cached answers are free, so they are returned even when the quota is used up. */
   results: CheckParagraphResult[];
   quota: QuotaState | null;
-}
-
-function clientIp(req: NextApiRequest): string {
-  const forwarded = req.headers['x-forwarded-for'];
-  const first = (Array.isArray(forwarded) ? forwarded[0] : forwarded)?.split(',')[0]?.trim();
-  return first || req.socket.remoteAddress || 'unknown';
 }
 
 export function parseParagraphs(body: unknown): CheckParagraph[] | string {

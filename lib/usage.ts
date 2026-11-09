@@ -1,3 +1,4 @@
+import { validAnonymousId } from './check/quota';
 import { getSupabaseAdmin } from './supabase';
 import { getLimitsForUser, hasCustomUserLimits, type LimitTier } from './limits';
 
@@ -11,10 +12,10 @@ function todayUtc(): string {
 /**
  * Identity for usage: either user id (uuid) or anonymous id (prefixed so we don't mix).
  */
-function usageIdentity(userId: string | null, anonymousId: string | undefined): string {
+export function usageIdentity(userId: string | null, anonymousId: string | undefined): string {
   if (userId) return `user:${userId}`;
-  if (anonymousId) return `anon:${anonymousId}`;
-  return `anon:unknown`;
+  // A client-chosen id: anything that is not what the extension makes is one shared identity.
+  return `anon:${validAnonymousId(anonymousId)}`;
 }
 
 export interface UsageRow {
