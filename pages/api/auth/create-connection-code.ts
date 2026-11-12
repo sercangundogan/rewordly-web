@@ -60,6 +60,10 @@ export default async function handler(
       return;
     }
 
+    // Codes that were never exchanged still hold an access and a refresh token: remove them once expired.
+    const { error: purgeError } = await supabase.from('connection_codes').delete().lt('expires_at', new Date().toISOString());
+    if (purgeError) console.error('connection_codes cleanup failed:', purgeError.message);
+
     const code = randomCode();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
     await supabase.from('connection_codes').insert({
