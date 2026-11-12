@@ -223,3 +223,57 @@ describe('cache lifetime', () => {
     }
   });
 });
+
+describe('answers the model gets wrong in ways users noticed', () => {
+  beforeEach(() => {
+    replies.length = 0;
+    create.mockClear();
+  });
+
+  it('merges an id the model answered twice: "Heyyyy there" came back as an empty entry, then the real one', async () => {
+    replies.push({
+      finish: 'stop',
+      content: JSON.stringify({
+        r: [
+          { id: 'a', lang: 'en', issues: [] },
+          { id: 'a', lang: 'en', issues: [{ o: 'heyyyy', b: '', r: 'hey', m: 'excessive letters', t: 'spelling' }] },
+        ],
+      }),
+    });
+    const { results } = await run('Heyyyy there, thanks for the things.');
+    expect(results).toHaveLength(1);
+    expect(results[0]!.issues.map((i) => [i.offset, i.original, i.replacements[0]])).toEqual([[0, 'Heyyyy', 'Hey']]);
+  });
+
+  it('the same mistake reported in both entries is shown once', async () => {
+    const same = { o: 'teh', b: 'know', r: 'the', m: '', t: 'spelling' };
+    replies.push({ finish: 'stop', content: JSON.stringify({ r: [{ id: 'a', lang: 'en', issues: [same] }, { id: 'a', lang: 'en', issues: [same] }] }) });
+    expect((await run()).results[0]!.issues).toHaveLength(1);
+  });
+
+  it('shows the model a capitalized first word in lowercase, so a typo there is not taken for a name', async () => {
+    replies.push({
+      finish: 'stop',
+      content: JSON.stringify({
+        r: [
+          {
+            id: 'a',
+            lang: 'tr',
+            issues: [
+              { o: 'benlikk', b: '', r: 'benlik', m: '', t: 'spelling' },
+              { o: 'burdsa', b: 'kaldı mı ', r: 'burada', m: '', t: 'spelling' },
+            ],
+          },
+        ],
+      }),
+    });
+    const { results } = await run('Benlikk bir şey kaldı mı burdsa?');
+    const sent = (create.mock.calls[0] as unknown as [{ messages: Array<{ content: string }> }])[0].messages[1]!.content;
+    expect(JSON.parse(sent)).toEqual({ p: [{ id: 'a', text: 'benlikk bir şey kaldı mı burdsa?' }] });
+    // Both mistakes at once, on the user's own text.
+    expect(results[0]!.issues.map((i) => [i.original, i.replacements[0]])).toEqual([
+      ['Benlikk', 'Benlik'],
+      ['burdsa', 'burada'],
+    ]);
+  });
+});

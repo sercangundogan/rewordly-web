@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { expandToWord, findOffset, isPlausibleReplacement, locateIssues, normalizeQuotes, trimToChangedWords } from './locate';
+import {
+  expandToWord,
+  findOffset,
+  isPlausibleReplacement,
+  locateIssues,
+  lowerStart,
+  normalizeQuotes,
+  restoreStart,
+  trimToChangedWords,
+} from './locate';
 import type { RawIssue } from './types';
 
 function issue(original: string, replacement: string, before = ''): RawIssue {
@@ -189,5 +198,73 @@ describe('isPlausibleReplacement: a correction must not write new text', () => {
     const honest: RawIssue = { original: 'recieve', before: 'Please', replacement: 'receive', message: '', type: 'spelling' };
     expect(locateIssues(text, [injected])).toEqual([]);
     expect(locateIssues(text, [honest])).toHaveLength(1);
+  });
+});
+
+describe('lowerStart: the model is shown a capitalized first word in lowercase', () => {
+  it('lowers a capitalized first word, and nothing else', () => {
+    expect(lowerStart('Benlikk bir şey kaldı mı burdsa?')).toBe('benlikk bir şey kaldı mı burdsa?');
+    expect(lowerStart('Heyyyy there, Ahmet.')).toBe('heyyyy there, Ahmet.');
+    expect(lowerStart('Çok güzel.')).toBe('çok güzel.');
+  });
+
+  it('looks past leading quotes and brackets', () => {
+    expect(lowerStart('"Benlikk" dedi.')).toBe('"benlikk" dedi.');
+  });
+
+  it('leaves abbreviations, single capitals and lowercase starts alone', () => {
+    for (const text of ['PR hazır.', 'CI yeşil.', 'I think so.', 'A cat sat.', 'merhaba', '123 apples', '…']) {
+      expect(lowerStart(text)).toBe(text);
+    }
+  });
+
+  it('never touches I or İ, whose lowercase depends on the language', () => {
+    expect(lowerStart('Istanbul is big.')).toBe('Istanbul is big.');
+    expect(lowerStart('İstanbul büyük.')).toBe('İstanbul büyük.');
+  });
+
+  it('keeps the length, so offsets carry over', () => {
+    for (const text of ['Benlikk bir şey', 'Ölçü tamam', 'Ärger hier']) expect(lowerStart(text)).toHaveLength(text.length);
+  });
+});
+
+describe('restoreStart: answers about the lowered sentence, mapped back', () => {
+  const restore = (text: string, raw: RawIssue[], language = 'tr') => {
+    const shown = lowerStart(text);
+    return restoreStart(text, shown, locateIssues(shown, raw), language);
+  };
+
+  it('both typos of "Benlikk bir şey kaldı mı burdsa?" come back, the first one capitalized again', () => {
+    const text = 'Benlikk bir şey kaldı mı burdsa?';
+    const issues = restore(text, [
+      { original: 'benlikk', before: '', replacement: 'benlik', message: '', type: 'spelling' },
+      { original: 'burdsa', before: 'kaldı mı ', replacement: 'burada', message: '', type: 'spelling' },
+    ]);
+    expect(issues.map((i) => [i.offset, i.original, i.replacements[0]])).toEqual([
+      [0, 'Benlikk', 'Benlik'],
+      [25, 'burdsa', 'burada'],
+    ]);
+    for (const i of issues) expect(text.slice(i.offset, i.offset + i.length)).toBe(i.original);
+  });
+
+  it('capitalizes a replacement whose first letter changed', () => {
+    expect(restore('Cok güzel.', [issue('cok', 'çok')])[0]!.replacements[0]).toBe('Çok');
+    expect(restore('Gelicekmisin yarın?', [issue('gelicekmisin', 'gelecek misin')])[0]!.replacements[0]).toBe('Gelecek misin');
+  });
+
+  it('uses the Turkish capital İ for a Turkish replacement starting with i', () => {
+    const shown = 'emin degilim';
+    const located = locateIssues(shown, [issue('emin', 'imin')]);
+    expect(restoreStart('Emin degilim', shown, located, 'tr')[0]!.replacements[0]).toBe('İmin');
+    expect(restoreStart('Emin degilim', shown, located, 'en')[0]!.replacements[0]).toBe('Imin');
+  });
+
+  it('drops a suggestion that only puts back the capital the lowering removed ("ahmet" → "Ahmet")', () => {
+    expect(restore('Ahmet yarın gelcek mi?', [issue('ahmet', 'Ahmet'), issue('gelcek', 'gelecek', 'yarın')]).map((i) => i.original)).toEqual(['gelcek']);
+  });
+
+  it('changes nothing when the sentence was not lowered', () => {
+    const located = locateIssues('teh cat', [issue('teh', 'the')]);
+    expect(restoreStart('teh cat', 'teh cat', located, 'en')).toBe(located);
   });
 });
