@@ -116,6 +116,38 @@ export class CheckFailure extends Error {
 
 /** Past this, another attempt is not started: the platform would cut the request off and the spend would go unlogged. */
 const ATTEMPTS_DEADLINE_MS = 20_000;
+/**
+ * All model calls of one request end by then (checker attempts and judge together), which leaves time
+ * to log the spend before the platform stops the function (maxDuration in pages/api/check.ts).
+ */
+const REQUEST_DEADLINE_MS = 45_000;
+const CALL_TIMEOUT_MS = 20_000;
+/** A judge call is not started with less time than this left: it would only time out, and still be billed. */
+const MIN_JUDGE_TIME_MS = 5_000;
+
+/**
+ * Request options for every model call. No SDK retries: a retry after a timeout is a second billed call,
+ * and our own attempts loop already retries what is worth retrying.
+ */
+function callOptions(deadline: number): { timeout: number; maxRetries: number } {
+  return { timeout: Math.max(1_000, Math.min(CALL_TIMEOUT_MS, deadline - Date.now())), maxRetries: 0 };
+}
+
+/**
+ * A call that timed out on our side was most likely still run, and billed, by OpenAI, but its usage
+ * never reaches us. Count it at a pessimistic estimate (about 3 characters per input token, the full
+ * output cap), so the budget guard and ai_usage_log see it. Other errors return null.
+ */
+export function timedOutUsage(error: unknown, promptChars: number, maxOutputTokens: number): TokenUsage | null {
+  if (!(error instanceof OpenAI.APIConnectionTimeoutError)) return null;
+  return { inputTokens: Math.ceil(promptChars / 3), cachedInputTokens: 0, outputTokens: maxOutputTokens };
+}
+
+function addUsage(total: TokenUsage, more: TokenUsage): void {
+  total.inputTokens += more.inputTokens;
+  total.cachedInputTokens += more.cachedInputTokens;
+  total.outputTokens += more.outputTokens;
+}
 
 interface ModelOutput {
   r: Array<{ id: string; lang: string; issues: Array<{ o: string; b: string; r: string; m: string; t: RawIssue['type'] }> }>;
@@ -236,22 +268,32 @@ async function runCheck(
   // less deterministic. Every attempt's tokens are counted.
   let output: ModelOutput | null = null;
   const started = Date.now();
+  const deadline = started + REQUEST_DEADLINE_MS;
+  const userContent = JSON.stringify({ p: paragraphs });
+  const maxTokens = Math.min(3000, 400 + 200 * paragraphs.length);
   try {
     for (let attempt = 0; attempt < 3 && !output; attempt++) {
       if (attempt > 0 && Date.now() - started > ATTEMPTS_DEADLINE_MS) break;
-      const completion = await openai.chat.completions.create(
-        {
-          model: LIVE_CHECK_MODEL,
-          temperature: attempt === 0 ? 0 : 0.3,
-          max_tokens: Math.min(3000, 400 + 200 * paragraphs.length),
-          response_format: { type: 'json_schema', json_schema: RESPONSE_SCHEMA },
-          messages: [
-            { role: 'system', content: SYSTEM_PROMPT },
-            { role: 'user', content: JSON.stringify({ p: paragraphs }) },
-          ],
-        },
-        { timeout: 20000, maxRetries: 1 }
-      );
+      let completion: OpenAI.Chat.Completions.ChatCompletion;
+      try {
+        completion = await openai.chat.completions.create(
+          {
+            model: LIVE_CHECK_MODEL,
+            temperature: attempt === 0 ? 0 : 0.3,
+            max_tokens: maxTokens,
+            response_format: { type: 'json_schema', json_schema: RESPONSE_SCHEMA },
+            messages: [
+              { role: 'system', content: SYSTEM_PROMPT },
+              { role: 'user', content: userContent },
+            ],
+          },
+          callOptions(deadline)
+        );
+      } catch (error) {
+        const lost = timedOutUsage(error, SYSTEM_PROMPT.length + JSON.stringify(RESPONSE_SCHEMA).length + userContent.length, maxTokens);
+        if (lost) addUsage(usage, lost);
+        throw error;
+      }
       usage.inputTokens += completion.usage?.prompt_tokens ?? 0;
       usage.cachedInputTokens += completion.usage?.prompt_tokens_details?.cached_tokens ?? 0;
       usage.outputTokens += completion.usage?.completion_tokens ?? 0;
@@ -295,7 +337,8 @@ async function runCheck(
   let judge: { model: string; usage: TokenUsage } | undefined;
   const toJudge = staged.filter((s) => s.value.issues.length > 0);
   if (JUDGE_ENABLED && toJudge.length > 0) {
-    const judged = await judgeIssues(toJudge.map((s) => ({ id: s.p.id, text: s.p.text, edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })) })), (spent) => {
+    if (deadline - Date.now() < MIN_JUDGE_TIME_MS) throw new Error('No time left for the judge');
+    const judged = await judgeIssues(toJudge.map((s) => ({ id: s.p.id, text: s.p.text, edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })) })), deadline, (spent) => {
       // Known as soon as the reply arrives, so it is still reported when the reply turns out to be unusable.
       judgeSpent.value = { model: JUDGE_MODEL, usage: spent };
     });
@@ -317,22 +360,32 @@ async function runCheck(
 
 async function judgeIssues(
   items: Array<{ id: string; text: string; edits: Array<{ i: number; o: string; r: string; m: string }> }>,
+  deadline: number,
   spent: (usage: TokenUsage) => void
 ): Promise<{ verdicts: JudgeVerdict[]; usage: TokenUsage }> {
   const reasoning = JUDGE_MODEL.startsWith('gpt-5') || JUDGE_MODEL.startsWith('o');
+  const maxTokens = reasoning ? 2000 : 1000;
+  const userContent = JSON.stringify({ items });
   try {
-    const completion = await openai.chat.completions.create(
-      {
-        model: JUDGE_MODEL,
-        ...(reasoning ? { reasoning_effort: 'minimal', max_completion_tokens: 2000 } : { temperature: 0, max_tokens: 1000 }),
-        response_format: { type: 'json_schema', json_schema: JUDGE_SCHEMA },
-        messages: [
-          { role: 'system', content: JUDGE_PROMPT },
-          { role: 'user', content: JSON.stringify({ items }) },
-        ],
-      } as Parameters<typeof openai.chat.completions.create>[0],
-      { timeout: 20000, maxRetries: 1 }
-    ) as OpenAI.Chat.Completions.ChatCompletion;
+    let completion: OpenAI.Chat.Completions.ChatCompletion;
+    try {
+      completion = await openai.chat.completions.create(
+        {
+          model: JUDGE_MODEL,
+          ...(reasoning ? { reasoning_effort: 'minimal', max_completion_tokens: maxTokens } : { temperature: 0, max_tokens: maxTokens }),
+          response_format: { type: 'json_schema', json_schema: JUDGE_SCHEMA },
+          messages: [
+            { role: 'system', content: JUDGE_PROMPT },
+            { role: 'user', content: userContent },
+          ],
+        } as Parameters<typeof openai.chat.completions.create>[0],
+        callOptions(deadline)
+      ) as OpenAI.Chat.Completions.ChatCompletion;
+    } catch (error) {
+      const lost = timedOutUsage(error, JUDGE_PROMPT.length + JSON.stringify(JUDGE_SCHEMA).length + userContent.length, maxTokens);
+      if (lost) spent(lost);
+      throw error;
+    }
     const usage: TokenUsage = {
       inputTokens: completion.usage?.prompt_tokens ?? 0,
       cachedInputTokens: completion.usage?.prompt_tokens_details?.cached_tokens ?? 0,
