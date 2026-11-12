@@ -17,6 +17,7 @@ interface Kpis {
   live_checks: Num; live_chars: Num; live_users: Num; fixes: Num; fix_users: Num; fix_all: Num;
   ignores: Num; dictionary: Num; limit_events: Num; limit_users: Num;
   rewrites: Num; grammar: Num; ai_cost: Num; model_chars: Num;
+  live_off: Num; live_off_users: Num; site_disables: Num; site_disable_users: Num;
 }
 interface Daily {
   day: string; anon: Num; free: Num; pro: Num; new_users: Num; signups: Num;
@@ -37,6 +38,7 @@ interface Dashboard {
   trial: { started: Num; over_1k: Num; over_half: Num; used_up: Num };
   cohorts: { first_day: string; size: Num; d1: Num | null; d7: Num | null; any: Num | null }[];
   sites: { host: string; users: Num; live_checks: Num; live_chars: Num; fixes: Num; ignores: Num; rewrites: Num; grammar: Num; limit_events: Num; cost: Num }[];
+  turned_off: { host: string; users: Num; site_disables: Num; site_enables: Num; live_off: Num; live_on: Num }[];
   versions: { version: string; users: Num }[];
   top_users: TopUser[];
   limit_hits: { identity: string; email: string | null; plan: string; events: Record<string, Num>; last_day: string }[];
@@ -306,6 +308,12 @@ function Body({ data, onUser }: { data: Dashboard; onUser: (q: string) => void }
         <Tile label="Hit a limit" value={fmtNum(cur.limit_users)} hint="People who were stopped by a plan limit at least once">
           <span className="adm-muted">{fmtNum(cur.limit_events)} times</span>
         </Tile>
+        <Tile label="Turned live check off" value={fmtNum(cur.live_off_users)} hint="People who switched the live check off in the popup (extension newer than 1.8.0)">
+          <Delta cur={cur.live_off_users} prev={prev.live_off_users} invert /> <span className="adm-muted">{fmtNum(cur.live_off)} times</span>
+        </Tile>
+        <Tile label="Turned a site off" value={fmtNum(cur.site_disable_users)} hint="People who used “Disable Rewordly on this page” (extension newer than 1.8.0)">
+          <Delta cur={cur.site_disable_users} prev={prev.site_disable_users} invert /> <span className="adm-muted">{fmtNum(cur.site_disables)} times</span>
+        </Tile>
         <Tile label="AI spend" value={fmtUsd(cur.ai_cost)} spark={series('cost')}>
           <Delta cur={cur.ai_cost} prev={prev.ai_cost} invert />
         </Tile>
@@ -431,6 +439,30 @@ function Body({ data, onUser }: { data: Dashboard; onUser: (q: string) => void }
                   <td className="num">{fmtNum(s.fixes)}</td><td className="num">{fmtPct(pct(s.fixes, s.live_checks), 1)}</td>
                   <td className="num">{fmtNum(s.ignores)}</td><td className="num">{fmtNum(s.rewrites)}</td><td className="num">{fmtNum(s.grammar)}</td>
                   <td className="num">{fmtNum(s.limit_events)}</td><td className="num">{fmtUsd(s.cost)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <Card title="Turned off" sub="Where people turn Rewordly off. Live check switches are listed under the tab the popup was opened on; “none” means no website was open.">
+        <div className="adm-scroll">
+          <table className="adm-table">
+            <thead>
+              <tr>
+                <th>Site</th><th className="num">People</th><th className="num">Site off</th><th className="num">Site on again</th>
+                <th className="num">Live check off</th><th className="num">Live check on again</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data.turned_off ?? []).length === 0 && (
+                <tr><td colSpan={6} className="adm-muted">Nothing yet (needs an extension newer than 1.8.0).</td></tr>
+              )}
+              {(data.turned_off ?? []).map((t) => (
+                <tr key={t.host}>
+                  <td>{t.host}</td><td className="num">{t.users}</td><td className="num">{fmtNum(t.site_disables)}</td>
+                  <td className="num">{fmtNum(t.site_enables)}</td><td className="num">{fmtNum(t.live_off)}</td><td className="num">{fmtNum(t.live_on)}</td>
                 </tr>
               ))}
             </tbody>

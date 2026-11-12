@@ -103,6 +103,10 @@ BEGIN
       (SELECT COALESCE(sum(count), 0) FROM ev WHERE ev.cur = p.cur AND event = 'live_dictionary') AS dictionary,
       (SELECT COALESCE(sum(count), 0) FROM ev WHERE ev.cur = p.cur AND event LIKE '%\_limit') AS limit_events,
       (SELECT count(DISTINCT identity) FROM ev WHERE ev.cur = p.cur AND event LIKE '%\_limit') AS limit_users,
+      (SELECT COALESCE(sum(count), 0) FROM ev WHERE ev.cur = p.cur AND event = 'live_off') AS live_off,
+      (SELECT count(DISTINCT identity) FROM ev WHERE ev.cur = p.cur AND event = 'live_off') AS live_off_users,
+      (SELECT COALESCE(sum(count), 0) FROM ev WHERE ev.cur = p.cur AND event = 'site_disable') AS site_disables,
+      (SELECT count(DISTINCT identity) FROM ev WHERE ev.cur = p.cur AND event = 'site_disable') AS site_disable_users,
       (SELECT COALESCE(sum(rewrites), 0) FROM legacy WHERE legacy.cur = p.cur) AS rewrites,
       (SELECT COALESCE(sum(grammar), 0) FROM legacy WHERE legacy.cur = p.cur) AS grammar,
       (SELECT COALESCE(sum(cost_usd), 0) FROM cost WHERE cost.cur = p.cur) AS ai_cost,
@@ -252,7 +256,7 @@ BEGIN
       COALESCE(sum(count) FILTER (WHERE event = 'rewrite'), 0) AS rewrites,
       COALESCE(sum(count) FILTER (WHERE event = 'grammar'), 0) AS grammar,
       COALESCE(sum(count) FILTER (WHERE event LIKE '%\_limit'), 0) AS limit_events
-    FROM public.site_usage WHERE day >= v_from GROUP BY 1
+    FROM public.site_usage WHERE day >= v_from AND host <> 'none' GROUP BY 1
   ),
   c AS (
     SELECT host, sum(cost_usd) AS cost FROM public.ai_usage_log
@@ -263,6 +267,22 @@ BEGIN
     ORDER BY s.users DESC, s.live_checks DESC LIMIT 30
   ) r;
   v_out := v_out || jsonb_build_object('sites', v_part);
+
+  -- Where people turn Rewordly off (extension newer than 1.8.0). site_disable / site_enable: "Disable Rewordly on this
+  -- page" and back. live_off / live_on: the live check switch in the popup, under the site of the tab it was
+  -- opened on ('none' when that was not a website).
+  SELECT COALESCE(jsonb_agg(to_jsonb(r) ORDER BY r.users DESC, r.site_disables + r.live_off DESC), '[]'::jsonb) INTO v_part FROM (
+    SELECT host,
+      count(DISTINCT identity) FILTER (WHERE event IN ('site_disable', 'live_off')) AS users,
+      COALESCE(sum(count) FILTER (WHERE event = 'site_disable'), 0) AS site_disables,
+      COALESCE(sum(count) FILTER (WHERE event = 'site_enable'), 0) AS site_enables,
+      COALESCE(sum(count) FILTER (WHERE event = 'live_off'), 0) AS live_off,
+      COALESCE(sum(count) FILTER (WHERE event = 'live_on'), 0) AS live_on
+    FROM public.site_usage
+    WHERE day >= v_from AND event IN ('site_disable', 'site_enable', 'live_off', 'live_on')
+    GROUP BY 1 ORDER BY 2 DESC, 3 DESC LIMIT 30
+  ) r;
+  v_out := v_out || jsonb_build_object('turned_off', v_part);
 
   -- Extension versions seen in the last 7 days. Versions before 1.8.0 send no events: they only show in usage.
   WITH latest AS (
