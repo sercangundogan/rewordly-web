@@ -15,7 +15,8 @@ where feature = 'live_check' and created_at > now() - interval '30 days'
 group by 1, 2
 order by 1 desc, 2;
 
--- 2. New live-check users per day (first time an identity shows up)
+-- 2. New live-check users per day (first time an identity shows up).
+--    ai_usage_log keeps 90 days (supabase-retention.sql), so this and query 3 only see that window.
 select first_day, count(*) as new_users
 from (
   select identity, min(created_at)::date as first_day
