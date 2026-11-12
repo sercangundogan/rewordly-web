@@ -16,11 +16,13 @@ const Analytics = dynamic(
   { ssr: false }
 );
 
-export default function App({ Component, pageProps }: AppProps) {
+export default function App({ Component, pageProps, router }: AppProps) {
+  // The private admin page stays out of the site analytics.
+  const isAdmin = router.pathname === "/admin";
   return (
     <div className={plusJakarta.className}>
       <Component {...pageProps} />
-      <Analytics />
+      {!isAdmin && <Analytics />}
     </div>
   );
 }
