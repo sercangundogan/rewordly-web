@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { createHash } from 'crypto';
 import { getSupabaseAdmin } from '../supabase';
 import { approved, type JudgeVerdict } from './judge';
-import { locateIssues } from './locate';
+import { locateIssues, lowerStart, restoreStart } from './locate';
 import type { TokenUsage } from './costs';
 import type { CheckParagraph, CheckParagraphResult, RawIssue } from './types';
 
@@ -12,7 +12,7 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 export const LIVE_CHECK_MODEL = 'gpt-4o-mini';
 
 /** Bump when the prompt or output format changes: it is part of every cache key. */
-const PROMPT_VERSION = '5';
+const PROMPT_VERSION = '6';
 
 /**
  * Second pass. The fast model finds candidate mistakes, then this model confirms each one
@@ -26,6 +26,7 @@ const JUDGE_ENABLED = JUDGE_MODEL !== 'off';
 
 const JUDGE_PROMPT = `You review proposed corrections to text a user wrote. Input: {"items":[{"id","text","edits":[{"i","o","r","m"}]}]} where o is the original word(s) and r the suggested replacement.
 For every edit answer keep=true only if o is definitely wrong in the text's language and r is the right fix.
+A misspelled word is always definitely wrong, also in casual text: keep=true when o is not a word of the language (extra, missing, swapped or stretched letters, e.g. "recieve", "yarınn", "toplantıa", "Hellooo"; missing diacritics, e.g. Turkish "tesekkur") and r is the word the writer meant. That is never style or slang.
 Answer keep=false if: o is a valid word or form in its language (including formal or polite forms, e.g. Turkish "Bilginize"); o is a loanword, technical term or jargon used on purpose (e.g. English tech words such as review, merge, staging, push, PR, deploy inside Turkish text, even with Turkish suffixes); o is a name, handle, brand or abbreviation; or the change is only style, tone or preference.
 When in doubt, keep=false.`;
 
@@ -54,9 +55,10 @@ const JUDGE_SCHEMA = {
 // and typical inputs are a sentence or two.
 const SYSTEM_PROMPT = `You proofread text a user is typing, like Grammarly. Input: {"p":[{"id","text"}]}.
 For each item detect its language and list only CLEAR mistakes:
-spelling (typos, and missing diacritics or special letters such as ç ğ ı ö ş ü ß é, even in casual text), grammar (agreement, tense, word form, missing/extra words, articles, prepositions), punctuation (clearly wrong or missing, e.g. "dont").
+spelling (typos, stretched letters like "heyyyy", and missing diacritics or special letters such as ç ğ ı ö ş ü ß é, even in casual text), grammar (agreement, tense, word form, missing/extra words, articles, prepositions), punctuation (clearly wrong or missing, e.g. "dont").
 Never flag: style, tone, word choice, preferences; names, brands, @mentions, #tags, URLs, emails, code, numbers, emoji; slang, informal words or casual chat style (kinda, gonna, wanna, gotta, lol, u, lowercase starts); a missing final period. When unsure, skip it.
 Per issue: o = the wrong word(s) copied exactly, whole words only; b = the 1-4 words right before o, copied exactly ("" at start); r = replacement for o; m = the reason, max 8 words, same language as the text (e.g. "subject-verb agreement", never the corrected text), "" for obvious typos; t = "spelling"|"grammar"|"punctuation".
+Read every word: a sentence often has more than one mistake, list each of them.
 Return every id once, in order; issues [] when clean.`;
 
 const RESPONSE_SCHEMA = {
@@ -154,6 +156,20 @@ interface ModelOutput {
 }
 
 type CachedResult = Omit<CheckParagraphResult, 'id'>;
+
+/**
+ * The model sometimes answers for the same id more than once: an empty entry first, then one with the
+ * mistakes ("Heyyyy there" came back as `[{issues: []}, {issues: [Heyyyy]}]`, every time at temperature 0).
+ * Taking the first entry dropped real mistakes, so all entries are merged; locateIssues drops repeats.
+ */
+export function mergeEntries(entries: ModelOutput['r']): ModelOutput['r'][number] | undefined {
+  if (entries.length <= 1) return entries[0];
+  return {
+    id: entries[0]!.id,
+    lang: entries.find((e) => e.lang)?.lang ?? '',
+    issues: entries.flatMap((e) => e.issues),
+  };
+}
 
 function cacheKey(text: string): string {
   // The judge is part of the key: results checked by a different judge (or none) are not reused.
@@ -269,7 +285,7 @@ async function runCheck(
   let output: ModelOutput | null = null;
   const started = Date.now();
   const deadline = started + REQUEST_DEADLINE_MS;
-  const userContent = JSON.stringify({ p: paragraphs });
+  const userContent = JSON.stringify({ p: paragraphs.map((p) => ({ id: p.id, text: lowerStart(p.text) })) });
   const maxTokens = Math.min(3000, 400 + 200 * paragraphs.length);
   try {
     for (let attempt = 0; attempt < 3 && !output; attempt++) {
@@ -316,7 +332,7 @@ async function runCheck(
   const staged: Array<{ p: CheckParagraph; value: CachedResult }> = [];
   const results: CheckParagraphResult[] = [];
   for (const p of paragraphs) {
-    const modelResult = output.r.find((r) => r.id === p.id);
+    const modelResult = mergeEntries(output.r.filter((r) => r.id === p.id));
     // A paragraph the model skipped is reported clean but not cached, so it is retried next time.
     if (!modelResult) {
       results.push({ id: p.id, language: '', issues: [] });
@@ -329,7 +345,10 @@ async function runCheck(
       message: i.m,
       type: i.t,
     }));
-    staged.push({ p, value: { language: modelResult.lang.toLowerCase().slice(0, 5), issues: locateIssues(p.text, raw) } });
+    const language = modelResult.lang.toLowerCase().slice(0, 5);
+    // The model saw the sentence with its first capital lowered (see lowerStart): locate there, then map back.
+    const shown = lowerStart(p.text);
+    staged.push({ p, value: { language, issues: restoreStart(p.text, shown, locateIssues(shown, raw), language) } });
   }
 
   // Second pass. If it fails the whole request fails (the extension retries later): never show, or cache,
