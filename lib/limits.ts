@@ -29,6 +29,8 @@ export type LimitTier = 'anonymous' | 'free' | 'pro';
 export const CUSTOM_USER_LIMITS: Record<string, { rewrite: number; grammar: number }> = {
   // ahmedgabr1989@gmail.com
   '7fcdede8-aa92-4c7c-af89-f50a0488ca31': { rewrite: 25, grammar: 25 },
+  // eng.abdellatif.2018@gmail.com (asked by email on 2026-11-12)
+  '7956dfb8-593c-4049-a62a-0f9cf42e97d5': { rewrite: 30, grammar: 30 },
 };
 
 export function getLimitsForUser(
