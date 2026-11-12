@@ -20,6 +20,10 @@ export const EVENTS = [
   'rewrite_limit', //   rewrite refused by the plan limit
   'grammar', //         selection grammar check done
   'grammar_limit', //   grammar check refused by the plan limit
+  'site_disable', //    "Disable Rewordly on this page" (the site is turned off)
+  'site_enable', //     ... and turned back on
+  'live_off', //        live check switched off in the popup (host: the open tab's site, or 'none')
+  'live_on', //         ... and switched back on
 ] as const;
 export type UsageEventName = (typeof EVENTS)[number];
 
@@ -40,7 +44,8 @@ export function normalizeHost(input: unknown): string | null {
   if (typeof input !== 'string') return null;
   let host = input.trim().toLowerCase().replace(/\.$/, '');
   if (!host || host.length > 253) return null;
-  if (host === 'private') return host;
+  // 'none': a setting changed in the popup while no website was open (extension src/usage.ts, NO_SITE).
+  if (host === 'private' || host === 'none') return host;
   if (/[\s/@;'"]/.test(host)) return null;
   if (host === 'localhost' || /^\d{1,3}(\.\d{1,3}){3}$/.test(host) || /^\[[0-9a-f:.]+\]$/.test(host)) return 'private';
   if (!host.includes('.') || PRIVATE_SUFFIXES.some((s) => host.endsWith(s))) return 'private';

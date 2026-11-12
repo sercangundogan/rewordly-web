@@ -11,6 +11,7 @@ describe('normalizeHost', () => {
     ['jira.company.internal', 'private'],
     ['intranet', 'private'],
     ['[::1]', 'private'],
+    ['none', 'none'],
   ])('%s → %s', (input, expected) => {
     expect(normalizeHost(input)).toBe(expected);
   });
@@ -37,6 +38,25 @@ describe('parseUsageRows', () => {
       { host: 'medium.com', event: 'live_fix', count: 5, chars: 0 },
       { host: 'medium.com', event: 'live_check', count: 1, chars: 120 },
       { host: 'x.com', event: 'rewrite', count: 1000, chars: 0 },
+    ]);
+  });
+});
+
+describe('events for turning Rewordly off', () => {
+  it('accepts site_disable, site_enable, live_off and live_on, also under the "none" site', () => {
+    const rows = parseUsageRows({
+      events: [
+        { host: 'mail.google.com', event: 'site_disable', count: 1 },
+        { host: 'mail.google.com', event: 'site_enable', count: 1 },
+        { host: 'linkedin.com', event: 'live_off', count: 1 },
+        { host: 'none', event: 'live_on', count: 1 },
+      ],
+    });
+    expect(rows.map((r) => `${r.host} ${r.event}`)).toEqual([
+      'mail.google.com site_disable',
+      'mail.google.com site_enable',
+      'linkedin.com live_off',
+      'none live_on',
     ]);
   });
 });
