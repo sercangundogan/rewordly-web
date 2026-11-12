@@ -2,7 +2,7 @@ import OpenAI from 'openai';
 import { createHash } from 'crypto';
 import { getSupabaseAdmin } from '../supabase';
 import { approved, type JudgeVerdict } from './judge';
-import { locateIssues } from './locate';
+import { locateIssues, lowerStart, restoreStart } from './locate';
 import type { TokenUsage } from './costs';
 import type { CheckParagraph, CheckParagraphResult, RawIssue } from './types';
 
@@ -283,7 +283,7 @@ async function runCheck(
   let output: ModelOutput | null = null;
   const started = Date.now();
   const deadline = started + REQUEST_DEADLINE_MS;
-  const userContent = JSON.stringify({ p: paragraphs });
+  const userContent = JSON.stringify({ p: paragraphs.map((p) => ({ id: p.id, text: lowerStart(p.text) })) });
   const maxTokens = Math.min(3000, 400 + 200 * paragraphs.length);
   try {
     for (let attempt = 0; attempt < 3 && !output; attempt++) {
@@ -343,7 +343,10 @@ async function runCheck(
       message: i.m,
       type: i.t,
     }));
-    staged.push({ p, value: { language: modelResult.lang.toLowerCase().slice(0, 5), issues: locateIssues(p.text, raw) } });
+    const language = modelResult.lang.toLowerCase().slice(0, 5);
+    // The model saw the sentence with its first capital lowered (see lowerStart): locate there, then map back.
+    const shown = lowerStart(p.text);
+    staged.push({ p, value: { language, issues: restoreStart(p.text, shown, locateIssues(shown, raw), language) } });
   }
 
   // Second pass. If it fails the whole request fails (the extension retries later): never show, or cache,

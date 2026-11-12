@@ -236,7 +236,7 @@ describe('answers the model gets wrong in ways users noticed', () => {
       content: JSON.stringify({
         r: [
           { id: 'a', lang: 'en', issues: [] },
-          { id: 'a', lang: 'en', issues: [{ o: 'Heyyyy', b: '', r: 'Hey', m: 'excessive letters', t: 'spelling' }] },
+          { id: 'a', lang: 'en', issues: [{ o: 'heyyyy', b: '', r: 'hey', m: 'excessive letters', t: 'spelling' }] },
         ],
       }),
     });
@@ -251,4 +251,29 @@ describe('answers the model gets wrong in ways users noticed', () => {
     expect((await run()).results[0]!.issues).toHaveLength(1);
   });
 
+  it('shows the model a capitalized first word in lowercase, so a typo there is not taken for a name', async () => {
+    replies.push({
+      finish: 'stop',
+      content: JSON.stringify({
+        r: [
+          {
+            id: 'a',
+            lang: 'tr',
+            issues: [
+              { o: 'benlikk', b: '', r: 'benlik', m: '', t: 'spelling' },
+              { o: 'burdsa', b: 'kaldı mı ', r: 'burada', m: '', t: 'spelling' },
+            ],
+          },
+        ],
+      }),
+    });
+    const { results } = await run('Benlikk bir şey kaldı mı burdsa?');
+    const sent = (create.mock.calls[0] as unknown as [{ messages: Array<{ content: string }> }])[0].messages[1]!.content;
+    expect(JSON.parse(sent)).toEqual({ p: [{ id: 'a', text: 'benlikk bir şey kaldı mı burdsa?' }] });
+    // Both mistakes at once, on the user's own text.
+    expect(results[0]!.issues.map((i) => [i.original, i.replacements[0]])).toEqual([
+      ['Benlikk', 'Benlik'],
+      ['burdsa', 'burada'],
+    ]);
+  });
 });

@@ -253,3 +253,57 @@ function editDistance(a: string, b: string): number {
   }
   return prev[b.length]!;
 }
+
+const LETTER = new RegExp('\\p{L}', 'u');
+const LOWER = new RegExp('\\p{Ll}', 'u');
+
+/**
+ * gpt-4o-mini skips a misspelled word at the start of a sentence when it is capitalized, as if it
+ * were a name: "Benlikk bir şey kaldı mı burdsa?" came back with "burdsa" only, every time, while
+ * "benlikk bir şey kaldı mı burdsa?" came back with both. So the model is shown the sentence with its
+ * first word's capital lowered, and restoreStart maps the answer back. Only a capitalized word is
+ * lowered ("Benlikk", not "PR", "CI" or "I"), and never I or İ, whose lowercase depends on the language.
+ * The text keeps its length, so offsets found in it are offsets in the original.
+ */
+export function lowerStart(text: string): string {
+  const match = LETTER.exec(text);
+  if (!match) return text;
+  const i = match.index;
+  const first = text[i]!;
+  if (first === 'I' || first === 'İ' || first === first.toLowerCase()) return text;
+  const next = text[i + 1];
+  if (!next || !LOWER.test(next)) return text;
+  const lowered = first.toLowerCase();
+  if (lowered.length !== 1) return text;
+  return text.slice(0, i) + lowered + text.slice(i + 1);
+}
+
+/**
+ * Turns issues located in lowerStart(text) back into issues on `text`: the original is copied from
+ * `text` and a replacement that starts where the capital was gets its capital back. A suggestion that
+ * only changes that capital ("ahmet" → "Ahmet") came from the lowering itself and is dropped.
+ */
+export function restoreStart(text: string, shown: string, issues: CheckIssue[], language: string): CheckIssue[] {
+  if (shown === text) return issues;
+  let at = 0;
+  while (text[at] === shown[at]) at++;
+  const locale = /^(tr|az)/.test(language) ? 'tr' : undefined;
+  const restored: CheckIssue[] = [];
+  for (const issue of issues) {
+    const original = text.slice(issue.offset, issue.offset + issue.length);
+    if (at < issue.offset || at >= issue.offset + issue.length) {
+      restored.push(issue);
+      continue;
+    }
+    const k = at - issue.offset;
+    const replacements = issue.replacements.map((r) => {
+      const c = r[k];
+      if (!c || !LOWER.test(c)) return r;
+      const upper = c.toLocaleUpperCase(locale);
+      return upper.length === 1 ? r.slice(0, k) + upper + r.slice(k + 1) : r;
+    });
+    if (replacements[0] === original) continue;
+    restored.push({ ...issue, original, replacements });
+  }
+  return restored;
+}
