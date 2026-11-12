@@ -1,20 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // A scripted OpenAI client: each call takes the next reply.
-const replies: Array<{ finish: string; content: string; out?: number; takes?: number }> = [];
-const create = vi.fn(async () => {
+const replies: Array<{ finish: string; content: string; out?: number; takes?: number; timeout?: boolean }> = [];
+const create = vi.fn(async (..._args: unknown[]) => {
   const next = replies.shift()!;
   // A slow call: moves the clock (only Date is faked in the tests that use it).
   if (next.takes) vi.setSystemTime(Date.now() + next.takes);
+  // A call that timed out on our side (OpenAI ran it anyway).
+  if (next.timeout) throw new APIConnectionTimeoutError();
   return {
     choices: [{ finish_reason: next.finish, message: { content: next.content } }],
     usage: { prompt_tokens: 100, completion_tokens: next.out ?? 20, prompt_tokens_details: { cached_tokens: 0 } },
   };
 });
-vi.mock('openai', () => {
+const { APIError, APIConnectionTimeoutError } = vi.hoisted(() => {
   class APIError extends Error {}
+  class APIConnectionTimeoutError extends APIError {
+    constructor() {
+      super('Request timed out.');
+    }
+  }
+  return { APIError, APIConnectionTimeoutError };
+});
+vi.mock('openai', () => {
   class OpenAI {
     static APIError = APIError;
+    static APIConnectionTimeoutError = APIConnectionTimeoutError;
     chat = { completions: { create } };
   }
   return { default: OpenAI };
@@ -112,6 +123,45 @@ describe('a failed check still reports what it cost', () => {
     try {
       replies.push({ finish: 'length', content: LOOPING, takes: 25_000 }, { finish: 'stop', content: GOOD });
       await expect(run()).rejects.toThrow('unusable output');
+      expect(create).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('no SDK retries: a retry after a timeout would be a second billed call', async () => {
+    replies.push({ finish: 'stop', content: GOOD });
+    await run();
+    const options = create.mock.calls[0]![1] as { timeout: number; maxRetries: number };
+    expect(options.maxRetries).toBe(0);
+    expect(options.timeout).toBeLessThanOrEqual(20_000);
+  });
+
+  it('a checker call that timed out is counted at a pessimistic estimate (OpenAI still bills it)', async () => {
+    replies.push({ finish: 'stop', content: '', timeout: true });
+    const error = (await run().catch((e) => e)) as InstanceType<Awaited<typeof import('./llm')>['CheckFailure']>;
+    expect(error.name).toBe('CheckFailure');
+    expect(error.usage.inputTokens).toBeGreaterThan(300); // the whole prompt, not just the sentence
+    expect(error.usage.outputTokens).toBe(600); // the output cap for one paragraph
+  });
+
+  it('a judge call that timed out is reported as judge spend', async () => {
+    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: '', timeout: true });
+    const { checkWithModel, CheckFailure } = await runWithJudge();
+    const error = (await checkWithModel([{ id: 'a', text: 'I know teh answer.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
+    expect(error).toBeInstanceOf(CheckFailure);
+    expect(error.usage.inputTokens).toBe(100);
+    expect(error.judge?.model).toBe('gpt-5-mini');
+    expect(error.judge?.usage.outputTokens).toBe(2000);
+    expect(upsert).not.toHaveBeenCalled();
+  });
+
+  it('does not start the judge when the request is nearly out of time', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      replies.push({ finish: 'stop', content: GOOD, takes: 41_000 }, { finish: 'stop', content: '{"v":[]}' });
+      const { checkWithModel } = await runWithJudge();
+      await expect(checkWithModel([{ id: 'a', text: 'I know teh answer.' }])).rejects.toThrow('No time left');
       expect(create).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();

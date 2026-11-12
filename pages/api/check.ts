@@ -9,6 +9,12 @@ import { normalizeHost } from '../../lib/metrics';
 import { decorateResults } from '../../lib/check/feedback';
 import { clientIp } from '../../lib/legacyGuard';
 
+/**
+ * Vercel stops the function after this many seconds. The model calls end within 45 seconds
+ * (REQUEST_DEADLINE_MS in lib/check/llm.ts), which leaves time to log what they cost.
+ */
+export const config = { maxDuration: 60 };
+
 const MAX_PARAGRAPHS = 30;
 const MAX_PARAGRAPH_LENGTH = 3000;
 const MAX_TOTAL_LENGTH = 12000;
