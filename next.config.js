@@ -43,6 +43,15 @@ const nextConfig = {
           },
         ],
       },
+      // Private admin dashboard: never indexed. Deliberately not listed in robots.txt, which is public.
+      {
+        source: '/admin',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
+      },
+      {
+        source: '/api/admin/:path*',
+        headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow, noarchive' }],
+      },
       {
         source: '/:path*',
         headers: [
