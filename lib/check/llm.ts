@@ -155,6 +155,20 @@ interface ModelOutput {
 
 type CachedResult = Omit<CheckParagraphResult, 'id'>;
 
+/**
+ * The model sometimes answers for the same id more than once: an empty entry first, then one with the
+ * mistakes ("Heyyyy there" came back as `[{issues: []}, {issues: [Heyyyy]}]`, every time at temperature 0).
+ * Taking the first entry dropped real mistakes, so all entries are merged; locateIssues drops repeats.
+ */
+export function mergeEntries(entries: ModelOutput['r']): ModelOutput['r'][number] | undefined {
+  if (entries.length <= 1) return entries[0];
+  return {
+    id: entries[0]!.id,
+    lang: entries.find((e) => e.lang)?.lang ?? '',
+    issues: entries.flatMap((e) => e.issues),
+  };
+}
+
 function cacheKey(text: string): string {
   // The judge is part of the key: results checked by a different judge (or none) are not reused.
   return createHash('sha1').update(`${PROMPT_VERSION}\n${LIVE_CHECK_MODEL}\n${JUDGE_ENABLED ? JUDGE_MODEL : 'nojudge'}\n${text}`).digest('hex');
@@ -316,7 +330,7 @@ async function runCheck(
   const staged: Array<{ p: CheckParagraph; value: CachedResult }> = [];
   const results: CheckParagraphResult[] = [];
   for (const p of paragraphs) {
-    const modelResult = output.r.find((r) => r.id === p.id);
+    const modelResult = mergeEntries(output.r.filter((r) => r.id === p.id));
     // A paragraph the model skipped is reported clean but not cached, so it is retried next time.
     if (!modelResult) {
       results.push({ id: p.id, language: '', issues: [] });
