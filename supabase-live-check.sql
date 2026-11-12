@@ -141,11 +141,4 @@ END;
 $$;
 REVOKE ALL ON FUNCTION public.add_check_feedback(TEXT, TEXT[], INTEGER) FROM PUBLIC, anon, authenticated;
 
--- Weekly cleanup (Sundays 03:00 UTC) with pg_cron. If pg_cron is not enabled yet (Database > Extensions),
--- this only prints a notice; run `SELECT public.purge_check_cache();` by hand now and then instead.
-DO $$
-BEGIN
-  PERFORM cron.schedule('purge-check-cache', '0 3 * * 0', 'SELECT public.purge_check_cache(30)');
-EXCEPTION WHEN OTHERS THEN
-  RAISE NOTICE 'pg_cron is not available, skipping the schedule: %', SQLERRM;
-END $$;
+-- purge_check_cache runs every day as part of public.purge_old_data(), scheduled by supabase-retention.sql.
