@@ -56,7 +56,7 @@ const PLAN_SERIES: Series[] = [
   { key: 'pro', label: 'Pro', color: 'var(--s3)' },
 ];
 /** Fixed model → slot order so a model keeps its color whatever the range shows. */
-const MODEL_ORDER = ['gpt-4o-mini', 'gpt-5-mini'];
+const MODEL_ORDER = ['gpt-4o-mini', 'gpt-5-mini', 'gpt-6-luna'];
 const SLOTS = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)', 'var(--s8)'];
 
 const pct = (a: number, b: number) => (b > 0 ? (100 * a) / b : NaN);

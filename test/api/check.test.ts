@@ -79,3 +79,28 @@ describe('POST /api/check when the check fails after the model was paid for', ()
     expect(checkWithModel).not.toHaveBeenCalled();
   });
 });
+
+describe('POST /api/check timing log', () => {
+  it('writes one check_timing line with the steps in milliseconds, and no text or identity', async () => {
+    const text = 'I know teh answer.';
+    checkWithModel.mockReset();
+    checkWithModel.mockResolvedValue({
+      results: [{ id: 'a', language: 'en', issues: [] }],
+      usage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 20 },
+      timing: { checkerMs: 1200, attempts: 1, judgeMs: 900 },
+    });
+    const log = vi.spyOn(console, 'log').mockImplementation(() => undefined);
+    const res = await call({ paragraphs: [{ id: 'a', text }], host: 'example.com' });
+    const lines = log.mock.calls.map(([line]) => String(line)).filter((line) => line.includes('check_timing'));
+    log.mockRestore();
+
+    expect(res.statusCode).toBe(200);
+    expect(lines).toHaveLength(1);
+    const entry = JSON.parse(lines[0]!);
+    expect(entry).toMatchObject({ evt: 'check_timing', checkerMs: 1200, attempts: 1, judgeMs: 900, sentences: 1, chars: text.length, tier: 'anonymous' });
+    for (const key of ['totalMs', 'cacheMs', 'authMs', 'quotaMs', 'modelMs', 'recordMs']) expect(typeof entry[key]).toBe('number');
+    expect(lines[0]).not.toContain('teh');
+    expect(lines[0]).not.toContain('anon:');
+    expect(lines[0]).not.toContain('example.com');
+  });
+});

@@ -8,6 +8,7 @@ import type { LimitTier } from '../limits';
 
 /** USD per 1M tokens. Check https://openai.com/api/pricing when changing models. */
 const PRICING: Record<string, { input: number; cachedInput: number; output: number }> = {
+  'gpt-6-luna': { input: 0.1, cachedInput: 0.01, output: 0.5 },
   'gpt-4o-mini': { input: 0.15, cachedInput: 0.075, output: 0.6 },
   'gpt-4.1-mini': { input: 0.4, cachedInput: 0.1, output: 1.6 },
   'gpt-5-mini': { input: 0.25, cachedInput: 0.025, output: 2 },

@@ -8,21 +8,37 @@ import type { CheckParagraph, CheckParagraphResult, RawIssue } from './types';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
-/** Live checks run on every typing pause, so they always use the fast model. */
-export const LIVE_CHECK_MODEL = 'gpt-4o-mini';
+/** Live checks run on every typing pause, so they always use the fast model (reasoning off). */
+export const LIVE_CHECK_MODEL = 'gpt-6-luna';
 
-/** Bump when the prompt or output format changes: it is part of every cache key. */
-const PROMPT_VERSION = '6';
+/** Bump when the prompt, the output format or the judge rule changes: it is part of every cache key. */
+const PROMPT_VERSION = '7';
 
 /**
- * Second pass. The fast model finds candidate mistakes, then this model confirms each one
- * before it is shown. Alone, a bigger checker does not help (measured: it over-corrects just
- * as much); a judge that only sees the suggestions and is told to reject when in doubt does.
- * Only sentences that have suggestions are judged, which is a minority.
+ * Second pass. The fast model finds candidate mistakes, then this model confirms the grammar and
+ * punctuation ones before they are shown; spelling fixes are shown as they are (see needsJudge).
+ * Measured on 2026-11-13 with `npm run eval:live`: without a judge the checker raised a false alarm on
+ * about 3% of clean sentences, all of them grammar or punctuation; judging every suggestion removed
+ * them but cost a second call (about 1 s) on every sentence with a typo and rejected a real typo once.
  * LIVE_CHECK_JUDGE_MODEL=off turns it off; any other chat model id replaces the default.
  */
-export const JUDGE_MODEL = process.env.LIVE_CHECK_JUDGE_MODEL || 'gpt-5-mini';
+export const JUDGE_MODEL = process.env.LIVE_CHECK_JUDGE_MODEL || 'gpt-6-luna';
 const JUDGE_ENABLED = JUDGE_MODEL !== 'off';
+
+/** Spelling fixes skip the judge: they are the bulk of what users wait for, and the checker gets them right. */
+function needsJudge(issue: { type: RawIssue['type'] }): boolean {
+  return issue.type !== 'spelling';
+}
+
+/**
+ * Request fields that differ by model family: gpt-6 and gpt-5.x take reasoning effort `none`, the first
+ * gpt-5 models and the o-series only go down to `minimal`, older chat models have no reasoning at all.
+ */
+function modelParams(model: string, maxTokens: number): Record<string, unknown> {
+  if (/^gpt-(6|5\.)/.test(model)) return { reasoning_effort: 'none', max_completion_tokens: maxTokens };
+  if (model.startsWith('gpt-5') || model.startsWith('o')) return { reasoning_effort: 'minimal', max_completion_tokens: maxTokens };
+  return { temperature: 0, max_tokens: maxTokens };
+}
 
 const JUDGE_PROMPT = `You review proposed corrections to text a user wrote. Input: {"items":[{"id","text","edits":[{"i","o","r","m"}]}]} where o is the original word(s) and r the suggested replacement.
 For every edit answer keep=true only if o is definitely wrong in the text's language and r is the right fix.
@@ -233,6 +249,15 @@ async function writeSharedCache(entries: Array<{ key: string; result: CachedResu
   if (error) console.error('check_cache write failed:', error.message);
 }
 
+/** How long the model calls of one request took, for the timing log in pages/api/check.ts. */
+export interface ModelTiming {
+  /** All checker attempts together. */
+  checkerMs: number;
+  attempts: number;
+  /** 0 when the judge did not run. */
+  judgeMs: number;
+}
+
 export interface CheckOutcome {
   results: CheckParagraphResult[];
   /** Paragraphs that need a model call (not cached anywhere). */
@@ -259,7 +284,7 @@ export async function lookupCached(paragraphs: CheckParagraph[]): Promise<CheckO
 /** Checks uncached paragraphs with the model, caches the results and reports token usage. Failures are CheckFailure. */
 export async function checkWithModel(
   paragraphs: CheckParagraph[]
-): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage } }> {
+): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage }; timing: ModelTiming }> {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY is not configured');
   }
@@ -276,13 +301,13 @@ async function runCheck(
   paragraphs: CheckParagraph[],
   usage: TokenUsage,
   judgeSpent: { value: { model: string; usage: TokenUsage } | undefined }
-): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage } }> {
+): Promise<{ results: CheckParagraphResult[]; usage: TokenUsage; judge?: { model: string; usage: TokenUsage }; timing: ModelTiming }> {
 
   // The model sometimes repeats the same result object until it runs out of tokens, which leaves broken
-  // JSON (seen on short inputs, about one call in forty, and the same input does it again at temperature 0).
-  // So: a token cap that fits the input (a loop ends early and cheap), and up to two more tries a little
-  // less deterministic. Every attempt's tokens are counted.
+  // JSON (seen with gpt-4o-mini on short inputs, about one call in forty). So: a token cap that fits the
+  // input (a loop ends early and cheap), and up to two more tries. Every attempt's tokens are counted.
   let output: ModelOutput | null = null;
+  const timing: ModelTiming = { checkerMs: 0, attempts: 0, judgeMs: 0 };
   const started = Date.now();
   const deadline = started + REQUEST_DEADLINE_MS;
   const userContent = JSON.stringify({ p: paragraphs.map((p) => ({ id: p.id, text: lowerStart(p.text) })) });
@@ -290,21 +315,21 @@ async function runCheck(
   try {
     for (let attempt = 0; attempt < 3 && !output; attempt++) {
       if (attempt > 0 && Date.now() - started > ATTEMPTS_DEADLINE_MS) break;
+      timing.attempts++;
       let completion: OpenAI.Chat.Completions.ChatCompletion;
       try {
         completion = await openai.chat.completions.create(
           {
             model: LIVE_CHECK_MODEL,
-            temperature: attempt === 0 ? 0 : 0.3,
-            max_tokens: maxTokens,
+            ...modelParams(LIVE_CHECK_MODEL, maxTokens),
             response_format: { type: 'json_schema', json_schema: RESPONSE_SCHEMA },
             messages: [
               { role: 'system', content: SYSTEM_PROMPT },
               { role: 'user', content: userContent },
             ],
-          },
+          } as Parameters<typeof openai.chat.completions.create>[0],
           callOptions(deadline)
-        );
+        ) as OpenAI.Chat.Completions.ChatCompletion;
       } catch (error) {
         const lost = timedOutUsage(error, SYSTEM_PROMPT.length + JSON.stringify(RESPONSE_SCHEMA).length + userContent.length, maxTokens);
         if (lost) addUsage(usage, lost);
@@ -327,6 +352,7 @@ async function runCheck(
     }
     throw error;
   }
+  timing.checkerMs = Date.now() - started;
   if (!output) throw new Error('The model returned unusable output');
 
   const staged: Array<{ p: CheckParagraph; value: CachedResult }> = [];
@@ -354,15 +380,26 @@ async function runCheck(
   // Second pass. If it fails the whole request fails (the extension retries later): never show, or cache,
   // suggestions that were not confirmed.
   let judge: { model: string; usage: TokenUsage } | undefined;
-  const toJudge = staged.filter((s) => s.value.issues.length > 0);
+  const toJudge = staged.filter((s) => s.value.issues.some(needsJudge));
   if (JUDGE_ENABLED && toJudge.length > 0) {
     if (deadline - Date.now() < MIN_JUDGE_TIME_MS) throw new Error('No time left for the judge');
-    const judged = await judgeIssues(toJudge.map((s) => ({ id: s.p.id, text: s.p.text, edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })) })), deadline, (spent) => {
+    const judgeStarted = Date.now();
+    // i is the issue's place in the sentence's list, so a verdict finds its issue among the unjudged ones.
+    const items = toJudge.map((s) => ({
+      id: s.p.id,
+      text: s.p.text,
+      edits: s.value.issues.map((x, i) => ({ i, o: x.original, r: x.replacements[0] ?? '', m: x.message })).filter((_, i) => needsJudge(s.value.issues[i]!)),
+    }));
+    const judged = await judgeIssues(items, deadline, (spent) => {
       // Known as soon as the reply arrives, so it is still reported when the reply turns out to be unusable.
       judgeSpent.value = { model: JUDGE_MODEL, usage: spent };
     });
+    timing.judgeMs = Date.now() - judgeStarted;
     judge = { model: JUDGE_MODEL, usage: judged.usage };
-    for (const s of toJudge) s.value.issues = approved(s.p.id, s.value.issues, judged.verdicts);
+    for (const s of toJudge) {
+      const kept = new Set(approved(s.p.id, s.value.issues.map((_, i) => i), judged.verdicts));
+      s.value.issues = s.value.issues.filter((issue, i) => !needsJudge(issue) || kept.has(i));
+    }
   }
 
   const toCache: Array<{ key: string; result: CachedResult }> = [];
@@ -374,7 +411,7 @@ async function runCheck(
   }
   await writeSharedCache(toCache);
 
-  return { results, usage, ...(judge ? { judge } : {}) };
+  return { results, usage, ...(judge ? { judge } : {}), timing };
 }
 
 async function judgeIssues(
@@ -382,8 +419,8 @@ async function judgeIssues(
   deadline: number,
   spent: (usage: TokenUsage) => void
 ): Promise<{ verdicts: JudgeVerdict[]; usage: TokenUsage }> {
-  const reasoning = JUDGE_MODEL.startsWith('gpt-5') || JUDGE_MODEL.startsWith('o');
-  const maxTokens = reasoning ? 2000 : 1000;
+  // Models that cannot turn reasoning off spend part of the cap on it.
+  const maxTokens = modelParams(JUDGE_MODEL, 0).reasoning_effort === 'minimal' ? 2000 : 1000;
   const userContent = JSON.stringify({ items });
   try {
     let completion: OpenAI.Chat.Completions.ChatCompletion;
@@ -391,7 +428,7 @@ async function judgeIssues(
       completion = await openai.chat.completions.create(
         {
           model: JUDGE_MODEL,
-          ...(reasoning ? { reasoning_effort: 'minimal', max_completion_tokens: maxTokens } : { temperature: 0, max_tokens: maxTokens }),
+          ...modelParams(JUDGE_MODEL, maxTokens),
           response_format: { type: 'json_schema', json_schema: JUDGE_SCHEMA },
           messages: [
             { role: 'system', content: JUDGE_PROMPT },

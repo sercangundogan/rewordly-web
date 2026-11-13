@@ -37,7 +37,9 @@ vi.mock('../supabase', () => ({
 }));
 
 const GOOD = JSON.stringify({ r: [{ id: 'a', lang: 'en', issues: [{ o: 'teh', b: 'know', r: 'the', m: '', t: 'spelling' }] }] });
-const LOOPING = '{"r":[{"id":"a","lang":"tr","issues":[]},{"id":"a","lang":"tr","issues":[]},{"id":"a","lang":"tr","iss';
+/** A grammar suggestion: unlike a spelling fix, it goes to the judge. */
+const NEEDS_JUDGE = JSON.stringify({ r: [{ id: 'a', lang: 'en', issues: [{ o: 'go', b: 'She', r: 'goes', m: 'verb form', t: 'grammar' }] }] });
+const LOOPING ='{"r":[{"id":"a","lang":"tr","issues":[]},{"id":"a","lang":"tr","issues":[]},{"id":"a","lang":"tr","iss';
 
 async function run(text = 'I know teh answer.') {
   vi.stubEnv('OPENAI_API_KEY', 'test');
@@ -53,16 +55,19 @@ describe('checkWithModel: a model that repeats itself until it is cut off', () =
     create.mockClear();
   });
 
-  it('asks again, a little less deterministic, and counts every attempt', async () => {
+  it('asks again and counts every attempt', async () => {
     replies.push({ finish: 'length', content: LOOPING, out: 450 }, { finish: 'stop', content: GOOD });
-    const { results, usage } = await run();
+    const { results, usage, timing } = await run();
     expect(results[0]!.issues.map((i) => i.original)).toEqual(['teh']);
     expect(create).toHaveBeenCalledTimes(2);
-    const calls = create.mock.calls as unknown as Array<[{ temperature: number; max_tokens: number }]>;
-    expect(calls[0]![0].temperature).toBe(0);
-    expect(calls[1]![0].temperature).toBeGreaterThan(0);
+    // Both attempts are in the timing the endpoint logs; the judge is off here.
+    expect(timing).toMatchObject({ attempts: 2, judgeMs: 0 });
+    const calls = create.mock.calls as unknown as Array<[{ model: string; reasoning_effort: string; max_completion_tokens: number }]>;
+    // The fast model with reasoning off: thinking would add seconds to every typing pause.
+    expect(calls[0]![0]).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none' });
+    expect(calls[0]![0]).not.toHaveProperty('temperature');
     // The cap fits the input: a loop ends early instead of running to 1500 tokens.
-    expect(calls[0]![0].max_tokens).toBeLessThanOrEqual(600);
+    expect(calls[0]![0].max_completion_tokens).toBeLessThanOrEqual(600);
     expect(usage.outputTokens).toBe(470);
   });
 
@@ -75,6 +80,66 @@ describe('checkWithModel: a model that repeats itself until it is cut off', () =
     replies.push({ finish: 'length', content: LOOPING }, { finish: 'length', content: LOOPING }, { finish: 'length', content: LOOPING });
     await expect(run()).rejects.toThrow('unusable output');
     expect(create).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe('the judge only sees grammar and punctuation suggestions', () => {
+  beforeEach(() => {
+    replies.length = 0;
+    create.mockClear();
+    vi.unstubAllEnvs();
+  });
+
+  const MIXED = JSON.stringify({
+    r: [
+      {
+        id: 'a',
+        lang: 'en',
+        issues: [
+          { o: 'teh', b: 'know', r: 'the', m: '', t: 'spelling' },
+          { o: 'go', b: 'she', r: 'goes', m: 'verb form', t: 'grammar' },
+        ],
+      },
+    ],
+  });
+
+  async function check(text: string) {
+    vi.stubEnv('OPENAI_API_KEY', 'test');
+    vi.resetModules();
+    const { checkWithModel } = await import('./llm');
+    return checkWithModel([{ id: 'a', text }]);
+  }
+
+  it('a spelling fix is shown without a second model call', async () => {
+    replies.push({ finish: 'stop', content: GOOD });
+    const { results, judge, timing } = await check('I know teh answer.');
+    expect(results[0]!.issues.map((i) => i.original)).toEqual(['teh']);
+    expect(create).toHaveBeenCalledTimes(1);
+    expect(judge).toBeUndefined();
+    expect(timing.judgeMs).toBe(0);
+  });
+
+  it('a rejected grammar suggestion is dropped, the spelling fix next to it stays', async () => {
+    replies.push({ finish: 'stop', content: MIXED }, { finish: 'stop', content: JSON.stringify({ v: [{ id: 'a', i: 1, keep: false }] }) });
+    const { results, judge } = await check('I know teh answer and she go home.');
+    expect(results[0]!.issues.map((i) => i.original)).toEqual(['teh']);
+    expect(judge?.model).toBe('gpt-6-luna');
+    // Only the grammar suggestion was sent, under its place in the sentence's list.
+    const sent = (create.mock.calls[1] as unknown as [{ model: string; reasoning_effort: string; messages: Array<{ content: string }> }])[0];
+    expect(sent).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none' });
+    expect((JSON.parse(sent.messages[1]!.content) as { items: Array<{ edits: Array<{ i: number; o: string }> }> }).items[0]!.edits.map((e) => [e.i, e.o])).toEqual([[1, 'go']]);
+  });
+
+  it('an approved grammar suggestion is shown with the spelling fix', async () => {
+    replies.push({ finish: 'stop', content: MIXED }, { finish: 'stop', content: JSON.stringify({ v: [{ id: 'a', i: 1, keep: true }] }) });
+    const { results } = await check('I know teh answer and she go home.');
+    expect(results[0]!.issues.map((i) => i.original)).toEqual(['teh', 'go']);
+  });
+
+  it('a grammar suggestion the judge did not answer is dropped: when unsure, show nothing', async () => {
+    replies.push({ finish: 'stop', content: MIXED }, { finish: 'stop', content: '{"v":[]}' });
+    const { results } = await check('I know teh answer and she go home.');
+    expect(results[0]!.issues.map((i) => i.original)).toEqual(['teh']);
   });
 });
 
@@ -102,9 +167,9 @@ describe('a failed check still reports what it cost', () => {
   });
 
   it('a judge that answers with garbage: the judge call is reported too, and nothing is cached', async () => {
-    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: 'not json', out: 7 });
+    replies.push({ finish: 'stop', content: NEEDS_JUDGE }, { finish: 'stop', content: 'not json', out: 7 });
     const { checkWithModel, CheckFailure } = await runWithJudge();
-    const error = (await checkWithModel([{ id: 'a', text: 'I know teh answer.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
+    const error = (await checkWithModel([{ id: 'a', text: 'She go home.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
     expect(error).toBeInstanceOf(CheckFailure);
     expect(error.usage.inputTokens).toBe(100);
     expect(error.judge).toEqual({ model: 'gpt-5-mini', usage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 7 } });
@@ -112,9 +177,9 @@ describe('a failed check still reports what it cost', () => {
   });
 
   it('a judge reply without verdicts is a failure, not "everything approved"', async () => {
-    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: '{}' });
+    replies.push({ finish: 'stop', content: NEEDS_JUDGE }, { finish: 'stop', content: '{}' });
     const { checkWithModel } = await runWithJudge();
-    await expect(checkWithModel([{ id: 'a', text: 'I know teh answer.' }])).rejects.toThrow('unusable output');
+    await expect(checkWithModel([{ id: 'a', text: 'She go home.' }])).rejects.toThrow('unusable output');
     expect(upsert).not.toHaveBeenCalled();
   });
 
@@ -146,9 +211,9 @@ describe('a failed check still reports what it cost', () => {
   });
 
   it('a judge call that timed out is reported as judge spend', async () => {
-    replies.push({ finish: 'stop', content: GOOD }, { finish: 'stop', content: '', timeout: true });
+    replies.push({ finish: 'stop', content: NEEDS_JUDGE }, { finish: 'stop', content: '', timeout: true });
     const { checkWithModel, CheckFailure } = await runWithJudge();
-    const error = (await checkWithModel([{ id: 'a', text: 'I know teh answer.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
+    const error = (await checkWithModel([{ id: 'a', text: 'She go home.' }]).catch((e) => e)) as InstanceType<typeof CheckFailure>;
     expect(error).toBeInstanceOf(CheckFailure);
     expect(error.usage.inputTokens).toBe(100);
     expect(error.judge?.model).toBe('gpt-5-mini');
@@ -159,9 +224,9 @@ describe('a failed check still reports what it cost', () => {
   it('does not start the judge when the request is nearly out of time', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     try {
-      replies.push({ finish: 'stop', content: GOOD, takes: 41_000 }, { finish: 'stop', content: '{"v":[]}' });
+      replies.push({ finish: 'stop', content: NEEDS_JUDGE, takes: 41_000 }, { finish: 'stop', content: '{"v":[]}' });
       const { checkWithModel } = await runWithJudge();
-      await expect(checkWithModel([{ id: 'a', text: 'I know teh answer.' }])).rejects.toThrow('No time left');
+      await expect(checkWithModel([{ id: 'a', text: 'She go home.' }])).rejects.toThrow('No time left');
       expect(create).toHaveBeenCalledTimes(1);
     } finally {
       vi.useRealTimers();
