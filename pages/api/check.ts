@@ -42,6 +42,15 @@ interface LimitResponse {
   quota: QuotaState | null;
 }
 
+/**
+ * One log line per request that reached the model: how long each step took, in milliseconds, with the
+ * request's size. No text and no identity. Read it in the Vercel logs (search "check_timing") to see
+ * where a slow check spends its time.
+ */
+function logTiming(entry: Record<string, number | string>): void {
+  console.log(JSON.stringify({ evt: 'check_timing', ...entry }));
+}
+
 export function parseParagraphs(body: unknown): CheckParagraph[] | string {
   const paragraphs = (body as { paragraphs?: unknown } | null)?.paragraphs;
   if (!Array.isArray(paragraphs) || paragraphs.length === 0) return 'paragraphs must be a non-empty array';
@@ -100,6 +109,7 @@ export default async function handler(
   }
 
   try {
+    const t0 = Date.now();
     const { results: cachedRaw, pending } = await lookupCached(paragraphs);
     // Suppressed suggestions are dropped and the rest tagged for feedback (lib/check/feedback.ts).
     const cached = await decorateResults(paragraphs, cachedRaw);
@@ -108,8 +118,10 @@ export default async function handler(
       return;
     }
 
+    const tCache = Date.now();
     const anonymousId = req.headers['x-anonymous-id'] as string | undefined;
     const { userId, tier } = await getAuthFromRequest(req.headers.authorization, anonymousId);
+    const tAuth = Date.now();
     const identity = quotaIdentity(userId, anonymousId);
     const ipId = tier === 'anonymous' ? ipIdentity(clientIp(req)) : null;
 
@@ -118,6 +130,8 @@ export default async function handler(
       ipId ? isIpOverLimit(ipId) : Promise.resolve(false),
       tier === 'pro' ? Promise.resolve(false) : isBudgetExhausted(),
     ]);
+
+    const tQuota = Date.now();
 
     if (budgetOver) {
       res.status(402).json({
@@ -162,6 +176,7 @@ export default async function handler(
       throw error;
     }
     const { results: fresh, usage, judge } = checked;
+    const tModel = Date.now();
     const chars = pending.reduce((sum, p) => sum + p.text.length, 0);
     await Promise.all([
       recordQuota(tier, identity, ipId, chars),
@@ -171,6 +186,21 @@ export default async function handler(
     ]);
 
     const byId = new Map([...cached, ...(await decorateResults(paragraphs, fresh))].map((r) => [r.id, r]));
+    logTiming({
+      totalMs: Date.now() - t0,
+      cacheMs: tCache - t0,
+      authMs: tAuth - tCache,
+      quotaMs: tQuota - tAuth,
+      // Model calls plus the shared cache write that follows them.
+      modelMs: tModel - tQuota,
+      checkerMs: checked.timing?.checkerMs ?? 0,
+      attempts: checked.timing?.attempts ?? 0,
+      judgeMs: checked.timing?.judgeMs ?? 0,
+      recordMs: Date.now() - tModel,
+      sentences: pending.length,
+      chars,
+      tier,
+    });
     res.status(200).json({
       results: paragraphs.map((p) => byId.get(p.id) ?? { id: p.id, language: '', issues: [] }),
       quota: { ...quota, used: quota.used + chars },
