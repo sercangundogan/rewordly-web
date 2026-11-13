@@ -1,14 +1,18 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { logUsage, recordQuota, checkWithModel } = vi.hoisted(() => ({
+const { logUsage, recordQuota, checkWithModel, getAuth, lookupCached, waitUntil } = vi.hoisted(() => ({
   logUsage: vi.fn(async (..._a: unknown[]) => undefined),
-  recordQuota: vi.fn(async (..._a: unknown[]) => undefined),
+  recordQuota: vi.fn(async (..._a: unknown[]): Promise<void> => undefined),
   checkWithModel: vi.fn(),
+  getAuth: vi.fn(async () => ({ userId: null, tier: 'anonymous' })),
+  lookupCached: vi.fn(async (p: unknown[]): Promise<{ results: unknown[]; pending: unknown[] }> => ({ results: [], pending: p })),
+  waitUntil: vi.fn((_work: Promise<unknown>) => undefined),
 }));
 
 vi.mock('../../lib/supabase', () => ({ getSupabaseAdmin: () => ({}) }));
 vi.mock('openai', () => ({ default: class {} }));
-vi.mock('../../lib/auth', () => ({ getAuthFromRequest: async () => ({ userId: null, tier: 'anonymous' }) }));
+vi.mock('@vercel/functions', () => ({ waitUntil }));
+vi.mock('../../lib/auth', () => ({ getAuthFromRequest: () => getAuth() }));
 vi.mock('../../lib/check/quota', () => ({
   getQuota: async () => ({ tier: 'anonymous', period: 'lifetime', used: 0, limit: 15000 }),
   ipIdentity: () => 'ip:x',
@@ -24,7 +28,7 @@ vi.mock('../../lib/check/llm', () => {
       super(message);
     }
   }
-  return { CheckFailure, LIVE_CHECK_MODEL: 'gpt-4o-mini', lookupCached: async (p: unknown[]) => ({ results: [], pending: p }), checkWithModel };
+  return { CheckFailure, LIVE_CHECK_MODEL: 'gpt-4o-mini', lookupCached: (p: unknown[]) => lookupCached(p), checkWithModel };
 });
 
 import handler from '../../pages/api/check';
@@ -98,9 +102,84 @@ describe('POST /api/check timing log', () => {
     expect(lines).toHaveLength(1);
     const entry = JSON.parse(lines[0]!);
     expect(entry).toMatchObject({ evt: 'check_timing', checkerMs: 1200, attempts: 1, judgeMs: 900, sentences: 1, chars: text.length, tier: 'anonymous' });
-    for (const key of ['totalMs', 'cacheMs', 'authMs', 'quotaMs', 'modelMs', 'recordMs']) expect(typeof entry[key]).toBe('number');
+    for (const key of ['totalMs', 'cacheMs', 'authMs', 'quotaMs', 'waitMs', 'modelMs', 'finishMs']) expect(typeof entry[key]).toBe('number');
     expect(lines[0]).not.toContain('teh');
     expect(lines[0]).not.toContain('anon:');
     expect(lines[0]).not.toContain('example.com');
+  });
+});
+
+describe('POST /api/check does not make the user wait for bookkeeping', () => {
+  const GOOD = {
+    results: [{ id: 'a', language: 'en', issues: [] }],
+    usage: { inputTokens: 100, cachedInputTokens: 0, outputTokens: 20 },
+    timing: { checkerMs: 1200, attempts: 1, judgeMs: 0 },
+  };
+  const body = { paragraphs: [{ id: 'a', text: 'I know teh answer.' }] };
+
+  beforeEach(() => {
+    logUsage.mockClear();
+    recordQuota.mockReset();
+    recordQuota.mockResolvedValue(undefined);
+    waitUntil.mockClear();
+    getAuth.mockClear();
+    lookupCached.mockReset();
+    lookupCached.mockImplementation(async (p: unknown[]) => ({ results: [], pending: p }));
+    checkWithModel.mockReset();
+    checkWithModel.mockResolvedValue(GOOD);
+    vi.spyOn(console, 'log').mockImplementation(() => undefined);
+  });
+
+  it('answers while the quota row is still being written, and hands that work to the platform', async () => {
+    let written = false;
+    let finish = () => undefined as void;
+    recordQuota.mockImplementation(
+      () =>
+        new Promise<void>((resolve) => {
+          finish = () => {
+            written = true;
+            resolve();
+          };
+        })
+    );
+    const res = await call(body);
+    expect(res.statusCode).toBe(200);
+    expect(written).toBe(false);
+    // The quota is still charged and the spend still logged: Vercel keeps the function alive for it.
+    expect(recordQuota).toHaveBeenCalledTimes(1);
+    expect(logUsage).toHaveBeenCalledTimes(1);
+    expect(waitUntil).toHaveBeenCalledTimes(1);
+    finish();
+    await waitUntil.mock.calls[0]![0];
+    expect(written).toBe(true);
+  });
+
+  it('a record that fails after the answer is logged, not thrown', async () => {
+    recordQuota.mockRejectedValue(new Error('database is down'));
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const res = await call(body);
+    await waitUntil.mock.calls[0]![0];
+    expect(res.statusCode).toBe(200);
+    expect(errors.mock.calls.some(([line]) => String(line).includes('quota and usage record failed'))).toBe(true);
+    errors.mockRestore();
+  });
+
+  it('looks up who is asking while the cache is still being read', async () => {
+    let release = () => undefined as void;
+    lookupCached.mockImplementation((p: unknown[]) => new Promise((resolve) => (release = () => resolve({ results: [], pending: p }))));
+    const pending = call(body);
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(getAuth).toHaveBeenCalledTimes(1);
+    expect(checkWithModel).not.toHaveBeenCalled();
+    release();
+    expect((await pending).statusCode).toBe(200);
+  });
+
+  it('a cached answer is returned even when the account lookup fails', async () => {
+    getAuth.mockRejectedValueOnce(new Error('auth is down'));
+    lookupCached.mockImplementation(async () => ({ results: [{ id: 'a', language: 'en', issues: [] }], pending: [] }));
+    const res = await call(body);
+    expect(res.statusCode).toBe(200);
+    expect(checkWithModel).not.toHaveBeenCalled();
   });
 });
