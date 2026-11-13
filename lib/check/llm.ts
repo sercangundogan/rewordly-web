@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { createHash } from 'crypto';
 import { getSupabaseAdmin } from '../supabase';
+import { afterResponse } from './after';
 import { approved, type JudgeVerdict } from './judge';
 import { locateIssues, lowerStart, restoreStart } from './locate';
 import type { TokenUsage } from './costs';
@@ -409,7 +410,8 @@ async function runCheck(
     toCache.push({ key, result: value });
     results.push({ id: p.id, ...value });
   }
-  await writeSharedCache(toCache);
+  // The answer does not wait for the shared cache: this instance already remembers it (see remember above).
+  afterResponse(writeSharedCache(toCache), 'check_cache write');
 
   return { results, usage, ...(judge ? { judge } : {}), timing };
 }

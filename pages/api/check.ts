@@ -3,6 +3,7 @@ import { getAuthFromRequest } from '../../lib/auth';
 import { CheckFailure, checkWithModel, lookupCached, LIVE_CHECK_MODEL } from '../../lib/check/llm';
 import { getQuota, ipIdentity, isIpOverLimit, quotaIdentity, recordQuota, type QuotaState } from '../../lib/check/quota';
 import { isBudgetExhausted, logUsage } from '../../lib/check/costs';
+import { afterResponse } from '../../lib/check/after';
 import type { CheckParagraph, CheckParagraphResult } from '../../lib/check/types';
 import type { ApiError } from '../../lib/openai';
 import { normalizeHost } from '../../lib/metrics';
@@ -110,6 +111,24 @@ export default async function handler(
 
   try {
     const t0 = Date.now();
+    // Who is asking and what they may still spend is looked up while the cache is read, not after it:
+    // a check that needs the model then starts as soon as the slower of the two is done.
+    const access = (async () => {
+      const anonymousId = req.headers['x-anonymous-id'] as string | undefined;
+      const { userId, tier } = await getAuthFromRequest(req.headers.authorization, anonymousId);
+      const tAuth = Date.now();
+      const identity = quotaIdentity(userId, anonymousId);
+      const ipId = tier === 'anonymous' ? ipIdentity(clientIp(req)) : null;
+      const [quota, ipOver, budgetOver] = await Promise.all([
+        getQuota(tier, identity),
+        ipId ? isIpOverLimit(ipId) : Promise.resolve(false),
+        tier === 'pro' ? Promise.resolve(false) : isBudgetExhausted(),
+      ]);
+      return { tier, identity, ipId, quota, ipOver, budgetOver, authMs: tAuth - t0, quotaMs: Date.now() - tAuth };
+    })();
+    // Not needed when every answer comes from the cache: a failure there must not go unhandled.
+    access.catch(() => undefined);
+
     const { results: cachedRaw, pending } = await lookupCached(paragraphs);
     // Suppressed suggestions are dropped and the rest tagged for feedback (lib/check/feedback.ts).
     const cached = await decorateResults(paragraphs, cachedRaw);
@@ -119,19 +138,8 @@ export default async function handler(
     }
 
     const tCache = Date.now();
-    const anonymousId = req.headers['x-anonymous-id'] as string | undefined;
-    const { userId, tier } = await getAuthFromRequest(req.headers.authorization, anonymousId);
-    const tAuth = Date.now();
-    const identity = quotaIdentity(userId, anonymousId);
-    const ipId = tier === 'anonymous' ? ipIdentity(clientIp(req)) : null;
-
-    const [quota, ipOver, budgetOver] = await Promise.all([
-      getQuota(tier, identity),
-      ipId ? isIpOverLimit(ipId) : Promise.resolve(false),
-      tier === 'pro' ? Promise.resolve(false) : isBudgetExhausted(),
-    ]);
-
-    const tQuota = Date.now();
+    const { tier, identity, ipId, quota, ipOver, budgetOver, authMs, quotaMs } = await access;
+    const tReady = Date.now();
 
     if (budgetOver) {
       res.status(402).json({
@@ -178,25 +186,33 @@ export default async function handler(
     const { results: fresh, usage, judge } = checked;
     const tModel = Date.now();
     const chars = pending.reduce((sum, p) => sum + p.text.length, 0);
-    await Promise.all([
-      recordQuota(tier, identity, ipId, chars),
-      logUsage({ identity, tier, model: LIVE_CHECK_MODEL, chars, usage, host: normalizeHost((req.body as { host?: unknown }).host) }),
-      // The judge's cost counts towards the daily budget too (same feature, its own model).
-      judge ? logUsage({ identity, tier, model: judge.model, chars: 0, usage: judge.usage, host: normalizeHost((req.body as { host?: unknown }).host) }) : Promise.resolve(),
-    ]);
+    const host = normalizeHost((req.body as { host?: unknown }).host);
+    // The user does not wait for the quota and usage rows: they are written after the answer is sent.
+    // A second request racing this one can pass the limit by one check at most.
+    afterResponse(
+      Promise.all([
+        recordQuota(tier, identity, ipId, chars),
+        logUsage({ identity, tier, model: LIVE_CHECK_MODEL, chars, usage, host }),
+        // The judge's cost counts towards the daily budget too (same feature, its own model).
+        judge ? logUsage({ identity, tier, model: judge.model, chars: 0, usage: judge.usage, host }) : Promise.resolve(),
+      ]),
+      'quota and usage record'
+    );
 
     const byId = new Map([...cached, ...(await decorateResults(paragraphs, fresh))].map((r) => [r.id, r]));
     logTiming({
       totalMs: Date.now() - t0,
+      // The cache read runs beside auth + quota; waitMs is what the model call actually waited for.
       cacheMs: tCache - t0,
-      authMs: tAuth - tCache,
-      quotaMs: tQuota - tAuth,
-      // Model calls plus the shared cache write that follows them.
-      modelMs: tModel - tQuota,
+      authMs,
+      quotaMs,
+      waitMs: tReady - t0,
+      modelMs: tModel - tReady,
       checkerMs: checked.timing?.checkerMs ?? 0,
       attempts: checked.timing?.attempts ?? 0,
       judgeMs: checked.timing?.judgeMs ?? 0,
-      recordMs: Date.now() - tModel,
+      // From the model's answer to ours (tagging the suggestions).
+      finishMs: Date.now() - tModel,
       sentences: pending.length,
       chars,
       tier,
