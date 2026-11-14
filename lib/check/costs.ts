@@ -23,10 +23,21 @@ export interface TokenUsage {
   outputTokens: number;
 }
 
-export function costUsd(model: string, usage: TokenUsage): number {
+/**
+ * Live checks run in OpenAI's Fast mode (service_tier "priority"): the user waits for every one of them.
+ * Measured on 2026-11-14 with test/eval/service-tier.eval.ts (gpt-6-luna, 72 pairs): the checker's median
+ * went from 1016 ms to 657 ms, at twice the token price. LIVE_CHECK_SERVICE_TIER=default goes back to the
+ * standard tier. The older endpoints (rewrite, grammar, proactive check) stay on the standard tier.
+ */
+export const LIVE_CHECK_SERVICE_TIER: 'priority' | 'default' = process.env.LIVE_CHECK_SERVICE_TIER === 'default' ? 'default' : 'priority';
+/** Fast mode is billed at twice the standard rate (OpenAI pricing page, 2026-11-13). */
+export const LIVE_CHECK_PRICE_FACTOR = LIVE_CHECK_SERVICE_TIER === 'priority' ? 2 : 1;
+
+/** `factor` multiplies the standard price, e.g. LIVE_CHECK_PRICE_FACTOR for calls made in Fast mode. */
+export function costUsd(model: string, usage: TokenUsage, factor = 1): number {
   const price = PRICING[model] ?? UNKNOWN_MODEL_PRICE;
   const uncached = Math.max(0, usage.inputTokens - usage.cachedInputTokens);
-  return (uncached * price.input + usage.cachedInputTokens * price.cachedInput + usage.outputTokens * price.output) / 1e6;
+  return (factor * (uncached * price.input + usage.cachedInputTokens * price.cachedInput + usage.outputTokens * price.output)) / 1e6;
 }
 
 export async function logUsage(entry: {
@@ -42,8 +53,8 @@ export async function logUsage(entry: {
 }): Promise<void> {
   // A failed call that never reached the model spent nothing: no row.
   if (entry.usage.inputTokens + entry.usage.outputTokens === 0) return;
-  const cost = costUsd(entry.model, entry.usage);
   const feature = entry.feature ?? 'live_check';
+  const cost = costUsd(entry.model, entry.usage, feature === 'live_check' ? LIVE_CHECK_PRICE_FACTOR : 1);
   if (feature === 'live_check') spentToday.value += cost;
   else legacySpent.value += cost;
   const row = {

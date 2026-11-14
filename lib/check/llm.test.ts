@@ -65,6 +65,8 @@ describe('checkWithModel: a model that repeats itself until it is cut off', () =
     const calls = create.mock.calls as unknown as Array<[{ model: string; reasoning_effort: string; max_completion_tokens: number }]>;
     // The fast model with reasoning off: thinking would add seconds to every typing pause.
     expect(calls[0]![0]).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none' });
+    // Fast mode: the user is waiting for the answer.
+    expect(calls[0]![0]).toMatchObject({ service_tier: 'priority' });
     expect(calls[0]![0]).not.toHaveProperty('temperature');
     // The cap fits the input: a loop ends early instead of running to 1500 tokens.
     expect(calls[0]![0].max_completion_tokens).toBeLessThanOrEqual(600);
@@ -126,7 +128,7 @@ describe('the judge only sees grammar and punctuation suggestions', () => {
     expect(judge?.model).toBe('gpt-6-luna');
     // Only the grammar suggestion was sent, under its place in the sentence's list.
     const sent = (create.mock.calls[1] as unknown as [{ model: string; reasoning_effort: string; messages: Array<{ content: string }> }])[0];
-    expect(sent).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none' });
+    expect(sent).toMatchObject({ model: 'gpt-6-luna', reasoning_effort: 'none', service_tier: 'priority' });
     expect((JSON.parse(sent.messages[1]!.content) as { items: Array<{ edits: Array<{ i: number; o: string }> }> }).items[0]!.edits.map((e) => [e.i, e.o])).toEqual([[1, 'go']]);
   });
 

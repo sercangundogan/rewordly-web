@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '../supabase';
 import { afterResponse } from './after';
 import { approved, type JudgeVerdict } from './judge';
 import { locateIssues, lowerStart, restoreStart } from './locate';
-import type { TokenUsage } from './costs';
+import { LIVE_CHECK_SERVICE_TIER, type TokenUsage } from './costs';
 import type { CheckParagraph, CheckParagraphResult, RawIssue } from './types';
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -323,6 +323,7 @@ async function runCheck(
           {
             model: LIVE_CHECK_MODEL,
             ...modelParams(LIVE_CHECK_MODEL, maxTokens),
+            service_tier: LIVE_CHECK_SERVICE_TIER,
             response_format: { type: 'json_schema', json_schema: RESPONSE_SCHEMA },
             messages: [
               { role: 'system', content: SYSTEM_PROMPT },
@@ -431,6 +432,7 @@ async function judgeIssues(
         {
           model: JUDGE_MODEL,
           ...modelParams(JUDGE_MODEL, maxTokens),
+          service_tier: LIVE_CHECK_SERVICE_TIER,
           response_format: { type: 'json_schema', json_schema: JUDGE_SCHEMA },
           messages: [
             { role: 'system', content: JUDGE_PROMPT },

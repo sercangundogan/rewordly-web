@@ -53,6 +53,14 @@ describe('legacy budget', () => {
     expect(inserts[0]).toMatchObject({ feature: 'rewrite', model: 'gpt-4o' });
   });
 
+  it('counts a live check at the Fast mode price, twice the standard one, and a rewrite at the standard price', async () => {
+    const million = { inputTokens: 1_000_000, cachedInputTokens: 0, outputTokens: 0 };
+    await logUsage({ identity: 'anon:x', tier: 'anonymous', model: 'gpt-6-luna', chars: 10, usage: million });
+    await logUsage({ identity: 'anon:x', tier: 'anonymous', model: 'gpt-6-luna', chars: 10, usage: million, feature: 'rewrite' });
+    expect(inserts[0]!.cost_usd).toBeCloseTo(0.2);
+    expect(inserts[1]!.cost_usd).toBeCloseTo(0.1);
+  });
+
   it('a call that used no tokens writes no row', async () => {
     await logUsage({ identity: 'anon:x', tier: 'anonymous', model: 'gpt-4o-mini', chars: 0, usage: { inputTokens: 0, cachedInputTokens: 0, outputTokens: 0 } });
     expect(inserts).toHaveLength(0);

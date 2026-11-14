@@ -16,7 +16,7 @@ interface Shared {
 }
 const shared = () => (globalThis as unknown as { __serviceTierEval: Shared }).__serviceTierEval;
 
-// The real client; only the service tier of the request is set, from the tier the check runs under.
+// The real client; only the service tier of the request is replaced, by the tier the check runs under.
 vi.mock('openai', async (importActual) => {
   const actual = await importActual<typeof import('openai')>();
   const Real = actual.default;
@@ -30,7 +30,7 @@ vi.mock('openai', async (importActual) => {
       const create = completions.create.bind(completions);
       completions.create = async (params, requestOptions) => {
         const asked = state.tier.getStore() ?? 'default';
-        const completion = await create(asked === 'default' ? params : { ...params, service_tier: asked }, requestOptions);
+        const completion = await create({ ...params, service_tier: asked }, requestOptions);
         state.served.push({ asked, got: String(completion.service_tier) });
         return completion;
       };
