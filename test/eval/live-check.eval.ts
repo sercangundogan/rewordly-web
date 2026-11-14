@@ -132,7 +132,7 @@ describe.skipIf(!process.env.OPENAI_API_KEY)('live check against the real models
     let found = 0;
 
     // One request per case and run, each from an empty cache (fresh module), a few at a time.
-    const { costUsd } = await import('../../lib/check/costs');
+    const { costUsd, LIVE_CHECK_PRICE_FACTOR } = await import('../../lib/check/costs');
     const { LIVE_CHECK_MODEL, JUDGE_MODEL } = await import('../../lib/check/llm');
     const totals: number[] = [];
     const checkerTimes: number[] = [];
@@ -151,12 +151,12 @@ describe.skipIf(!process.env.OPENAI_API_KEY)('live check against the real models
           totals.push(timing.checkerMs + timing.judgeMs);
           checkerTimes.push(timing.checkerMs);
           calls += timing.attempts;
-          spentUsd += costUsd(LIVE_CHECK_MODEL, usage);
+          spentUsd += costUsd(LIVE_CHECK_MODEL, usage, LIVE_CHECK_PRICE_FACTOR);
           // The judge only runs for grammar and punctuation suggestions.
           if (judge) {
             judgeTimes.push(timing.judgeMs);
             calls++;
-            spentUsd += costUsd(judge.model, judge.usage);
+            spentUsd += costUsd(judge.model, judge.usage, LIVE_CHECK_PRICE_FACTOR);
           }
           done.push({ c, run, issues: results[0]!.issues });
         } catch (error) {
